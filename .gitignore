@@ -6,9 +6,13 @@ lib-cov
 *.out
 *.pid
 *.gz
+*.sublime-*
 
 pids
 logs
 results
 
-npm-debug.log
+/npm-debug.log
+/coverage.html
+/out/test
+/node_modules
