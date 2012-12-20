@@ -155,12 +155,15 @@ class JustLog extends events.EventEmitter
     ms = MIN_ROTATE_MS if ms <= MIN_ROTATE_MS
     # remove old timeout
     if @file.timer isnt null
+
       clearTimeout @timer
       @timer = null
 
+
     # set timeout
     @file.timer = setTimeout @_rotateFile.bind(@), ms
-    @emit 'timer-start', ms # emit 'timer-start'
+    process.nextTick =>
+      @emit 'timer', ms # async emit 'timer-start'
 
     # check filepath changed
     prev = @file.path

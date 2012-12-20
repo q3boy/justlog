@@ -12,7 +12,7 @@ class mockStream
     data = ''
     for chunk in @chunks
       data += chunk.toString()
-    data.replace /\x1b\[\d+m/g, ''
+    data.replace /\x1b\[\d+m/g, '' # trim ansi color
 
 describe 'JustLog', ->
   jl = require '../lib/justlog'
@@ -221,6 +221,11 @@ describe 'JustLog', ->
       files = [l.file.path]
       l.on 'rotate', (prev, curr) ->
         files.push curr
+      tflag = 0
+      l.on 'timer', (ms)->
+        e(ms).to.below 1001
+        e(ms).to.above 99
+        tflag++
         # console.log prev, curr
       l.warn 'simple warn' # first log
       setTimeout ->
@@ -233,6 +238,7 @@ describe 'JustLog', ->
         l.error 'simple error3'
         l.close ->
           # console.log files
+          e(tflag).to.be 4
           flag = 0
           for k in files
             switch ++flag
