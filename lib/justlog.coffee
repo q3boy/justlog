@@ -1,14 +1,15 @@
-moment  = require 'moment'
 fs      = require 'fs'
 path    = require 'path'
+util    = require 'util'
 events  = require 'events'
+moment  = require 'moment'
 mkdirp  = require 'mkdirp'
 os      = require 'options-stream'
-util    = require 'util'
 levels  = require './levels'
 timeout = require './timeout'
 pattern = require './pattern'
 
+# lazy levels
 {info, debug, warn, error} = levels
 
 cwd = process.cwd()
@@ -19,8 +20,8 @@ defaultLogFile = "
 #{path.basename (path.basename process.argv[1] , '.js'), '.coffee'}
 -]YYYY-MM-DD[.log]
 "
-MIN_ROTATE_TIMEOUT = 100
-# console.log patterns
+MIN_ROTATE_MS = 100 #
+
 class JustLog extends events.EventEmitter
 
   constructor : (options)->
@@ -71,8 +72,10 @@ class JustLog extends events.EventEmitter
 
   # check log file renamed
   _checkFileRenamed : (cb)->
-    # check    need file                 has stream              stream opened
-    return if @options.file is false or @file.stream is null or @file.opening is true
+    # check need file             has stream              stream opened
+    if @options.file is false or @file.stream is null or @file.opening is true
+      cb null, false
+      return
 
     # get file stat
     fs.stat @file.path, (err, stat) =>
@@ -100,6 +103,7 @@ class JustLog extends events.EventEmitter
       return if changed is false
       @_closeStream() # close prev stream
       @_newStream() # open new stream
+      @emit 'rename', @file.path
       return
     return
 
@@ -122,13 +126,12 @@ class JustLog extends events.EventEmitter
     stream = fs.createWriteStream filePath, flags: 'a', mode: @options.file.mode
     stream.on 'error', @emit.bind @ # on error
     stream.on 'open', => # opened
+      @file.ino = null
       @file.opening = false
-    # stream.on 'close', => # closed
     @file.stream = stream
 
 
   _closeStream : ->
-    return if @options.file is false or not @file.stream
     @file.stream.end() # end stream
     @file.stream.destroySoon() # destory after drain
     @file.stream = null # clear object
@@ -136,11 +139,11 @@ class JustLog extends events.EventEmitter
 
 
   _initFile : ->
-    return if not @options.file # if file closed
     # set file path
     @_setFilePath()
     @_newStream()
     @file.watcher = setInterval @_checkFile.bind(@), @options.file.watcher_timeout
+    @_rotateFile()
 
 
 
@@ -148,9 +151,8 @@ class JustLog extends events.EventEmitter
     [ms] = timeout @options.file.path # get next timeout (ms)
     return if null is ms # return if log file has no rotate rules
 
-    # fix timeout <= MIN_ROTATE_TIMEOUT
-    ms = MIN_ROTATE_TIMEOUT if ms <= MIN_ROTATE_TIMEOUT
-
+    # fix timeout <= MIN_ROTATE_MS
+    ms = MIN_ROTATE_MS if ms <= MIN_ROTATE_MS
     # remove old timeout
     if @file.timer isnt null
       clearTimeout @timer
@@ -166,76 +168,15 @@ class JustLog extends events.EventEmitter
     if prev isnt @file.path
       @_closeStream() # close old stream
       @_newStream() # make new stream
+      @emit 'rotate', prev, @file.path
     return
-
-
-
-  # _initFile : ->
-  #   console.log 'init'
-  #   return if not @options.file
-  #   # set timer
-  #   [ms] = timeout @options.file.path
-  #   # console.log ms, @options.file
-  #   if null isnt ms
-  #     ms = 100 if ms <= 0
-  #     if @timer isnt null
-  #       clearTimeout @timer
-  #       @timer = null
-
-  #     @timer = setTimeout @_initFile.bind(@), ms
-  #     @emit 'timer_start', ms
-
-  #   # make path
-  #   filePath = path.normalize moment().format @options.file.path
-  #   filePath = path.relative cwd, filePath if path[0] is '/'
-  #   # console.log filePath
-  #   # return
-  #   # skip if path hasn't changed
-  #   return if @file.path is filePath
-
-  #   # if has last stream
-  #   if @file.stream
-  #     @file.stream.end()
-  #     @file.stream.destroySoon()
-  #     @file.stream = null
-
-  #   # mkdir
-  #   try
-  #     mkdirp.sync path.dirname(filePath), '2775'
-  #   catch err
-  #     @emit 'error', err
-
-  #   # open flag
-  #   @file.opening = true
-
-  #   # open new stream
-  #   # console.log filePath
-  #   stream = fs.createWriteStream filePath,
-  #     flags: 'a', mode: @options.file.mode
-
-  #   # events pass
-  #   emit = @emit.bind @
-  #   stream.on('error', emit)
-  #   .on('pipe', emit)
-  #   .on('drain', emit)
-  #   .on('open', =>
-  #     @file.opening = false
-  #     @file.watcher = setTimeout @_checkFile().bind(@), 1000
-  #   )
-  #   .on('close', => @emit '_close' if not @file.opening)
-
-  #   @file.path   = filePath
-  #   @file.stream = stream
-
 
   _fileLog : (msg, level) ->
     line = pattern.format @options.file.render, msg, level
-    # console.log @file.stream;
     @file.stream.write line, @options.encoding
 
   _stdioLog : (msg, level) ->
     line = pattern.format @options.stdio.render, msg, level
-    # console.log line
     (if level & (error|warn) then @stderr else @stdout).write line, @options.encoding
 
 
@@ -265,25 +206,12 @@ class JustLog extends events.EventEmitter
       @file.timer = null
     return
 
+create = (options) -> new JustLog options
 
-create = (options)->
-  new JustLog options
+create.ALL       = error | warn | debug | info        # all level const
+create.EXCEPTION = error | warn                       # error levels const
 
-create.ERROR     = error
-create.WARN      = warn
-create.DEBUG     = debug
-create.INFO      = info
-
-create[k.toUpperCase()] = v for k,v of levels.levels
-create[k] = v for k,v of pattern.pre
-
-create.ALL       = error | warn | debug | info
-create.EXCEPTION = error | warn
-
+create[k.toUpperCase()] = v for k, v of levels.levels # levels const
+create[k] = v               for k, v of pattern.pre   # pre-defined log format
 
 module.exports   = create
-
-# a = new JustLog
-# a.on 'all', (args...)->
-#   console.log args
-# require('http').createServer((req, resp)->console.log req).listen(8888)
