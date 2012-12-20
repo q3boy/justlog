@@ -31,14 +31,15 @@ module.exports = {
      * @type {object}
      *  colored :
      *   - SIMPLE-COLOR: log message and colored level text
+     *   - SIMPLE-NOCOLOR:  like simple without color
      *   - COLOR: tracestack, time, log message and colored level text
      *  nocolor :
-     *   - SIMPLE-NOCOLOR:  like simple without color
      *   - NOCOLOR: like color without color
      *   - FILE : fulltime, tracestack, log message and level text
      *  connect-middleware : ()
      *   - ACCESSLOG: apache access-log
      *   - ACCESSLOG-RT: like access-log with response-time on the end (with microsecond)
+     *   - ACCESSLOG-COLOR: like ACCESSLOG-RT with ansi colored
   */
 
   pre: {
@@ -48,7 +49,8 @@ module.exports = {
     'COLOR': '#{time} #{levelColored} #{stackColored} #{msg}',
     'FILE': '#{fulltime} [#{level.trim()}] (#{stack}) #{msg}',
     'ACCESSLOG': '#{removeAddr} #{ident} #{user}\n[#{now "DD/MMM/YYYY:HH:mm:ss ZZ"}]\n"#{method} #{url} HTTP/#{httpVersion}"\n#{statusCode} #{response.length}\n"#{headers.referer}"\n"#{headers["user-agent"]}"'.replace(/\n/g, ' '),
-    'ACCESSLOG-RT': '#{removeAddr} #{ident} #{user}\n[#{now "DD/MMM/YYYY:HH:mm:ss ZZ"}]\n"#{method} #{url} HTTP/#{httpVersion}"\n#{statusCode} #{response.length}\n"#{headers.referer}"\n"#{headers["user-agent"]}"\n#{response.time}'.replace(/\n/g, ' ')
+    'ACCESSLOG-RT': '#{removeAddr} #{ident} #{user}\n[#{now "DD/MMM/YYYY:HH:mm:ss ZZ"}]\n"#{method} #{url} HTTP/#{httpVersion}"\n#{statusCode} #{response.length}\n"#{headers.referer}"\n"#{headers["user-agent"]}"\n#{response.time}'.replace(/\n/g, ' '),
+    'ACCESSLOG-COLOR': '#{removeAddrColored} #{ident} #{user}\n[#{now "DD/MMM/YYYY:HH:mm:ss ZZ"}]\n"#{methodColored} #{urlColored} HTTP/#{httpVersion}"\n#{statusCodeColored} #{response.length}\n"#{color:blue}#{headers.referer}#{color.reset}"\n"#{color:cyan}#{headers["user-agent"]#{color.reset}}"\n#{response.time}'.replace(/\n/g, ' ')
   },
   /*
     /**
@@ -92,8 +94,8 @@ module.exports = {
       };
     }
     msg.color = colors;
-    msg.color.level = levels.color(level);
-    msg.level = levels.text(level);
+    msg.color.level = levels.color[level];
+    msg.level = levels.text[level];
     msg.levelColored = "" + msg.color.level + msg.level + colors.reset;
     if (render.time) {
       now = moment();

@@ -173,7 +173,8 @@ JustLog = (function(_super) {
   };
 
   JustLog.prototype._rotateFile = function() {
-    var ms, prev;
+    var ms, prev,
+      _this = this;
     ms = timeout(this.options.file.path)[0];
     if (null === ms) {
       return;
@@ -186,7 +187,9 @@ JustLog = (function(_super) {
       this.timer = null;
     }
     this.file.timer = setTimeout(this._rotateFile.bind(this), ms);
-    this.emit('timer-start', ms);
+    process.nextTick(function() {
+      return _this.emit('timer', ms);
+    });
     prev = this.file.path;
     this._setFilePath();
     if (prev !== this.file.path) {
@@ -272,10 +275,6 @@ JustLog = (function(_super) {
 create = function(options) {
   return new JustLog(options);
 };
-
-create.ALL = error | warn | debug | info;
-
-create.EXCEPTION = error | warn;
 
 _ref = levels.levels;
 for (k in _ref) {

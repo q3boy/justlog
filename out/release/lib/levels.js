@@ -32,12 +32,8 @@ color[warn] = colors.yellow;
 color[error] = colors.red;
 
 module.exports = {
-  color: function(level) {
-    return color[level];
-  },
-  text: function(level) {
-    return text[level];
-  },
+  color: color,
+  text: text,
   info: info,
   debug: debug,
   warn: warn,
@@ -46,6 +42,8 @@ module.exports = {
     info: info,
     debug: debug,
     warn: warn,
-    error: error
+    error: error,
+    all: error | warn | debug | info,
+    exception: error | warn
   }
 };
