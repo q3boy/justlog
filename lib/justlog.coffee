@@ -208,10 +208,7 @@ class JustLog extends events.EventEmitter
 
 create = (options) -> new JustLog options
 
-create.ALL       = error | warn | debug | info        # all level const
-create.EXCEPTION = error | warn                       # error levels const
-
 create[k.toUpperCase()] = v for k, v of levels.levels # levels const
-create[k] = v               for k, v of pattern.pre   # pre-defined log format
+create[k]               = v for k, v of pattern.pre   # pre-defined log format
 
-module.exports   = create
+module.exports = create
