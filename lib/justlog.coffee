@@ -24,28 +24,6 @@ defaultLogFile = "
 # log rotate minimum ms
 MIN_ROTATE_MS = 100
 
-###
-/**
- * @name rename
- * @description log file is renamed
- * @event
- * @param {String} [file], filepath
-###
-###
-/**
- * @name timer
- * @description a new rotate timer is set
- * @event
- * @param {Number} [ms], milliseconds for next rotate
-###
-###
-/**
- * @name rotate
- * @description file rotated
- * @event
- * @param {string} [prev], old filepath
- * @param {string} [curr], new filepath
-###
 class JustLog extends events.EventEmitter
 
   ###
@@ -94,7 +72,6 @@ class JustLog extends events.EventEmitter
     @file =
       path : null, stream : null, timer : null, opening : false
       watcher: null, ino: null
-
     @closed = false
 
     # need stdio
@@ -106,6 +83,7 @@ class JustLog extends events.EventEmitter
     # need file
     if @options.file
       @options.file.render = pattern.compile pattern.pre[@options.file.pattern] ? @options.file.pattern
+
       @_initFile()
 
   # overwrite emit
