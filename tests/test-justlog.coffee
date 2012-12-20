@@ -5,18 +5,14 @@ path = require 'path'
 stream = require 'stream'
 
 class mockStream
-  constructor : () ->
-    @chunks = []
-
-  write : (chunk) ->
-    @chunks.push chunk
+  constructor : () -> @chunks = []
+  write : (chunk) -> @chunks.push chunk
+  clean : -> chunks = []
   toString : (nocolor = true) ->
     data = ''
     for chunk in @chunks
       data += chunk.toString()
     data.replace /\x1b\[\d+m/g, ''
-  clean : ->
-    chunks = []
 
 describe 'JustLog', ->
   jl = require '../lib/justlog'
