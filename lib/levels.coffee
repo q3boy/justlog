@@ -20,8 +20,8 @@ color[warn]  = colors.yellow
 color[error] = colors.red
 
 module.exports =
-  color  : (level) -> color[level]
-  text   : (level) -> text[level]
+  color  : color
+  text   : text
   info   : info
   debug  : debug
   warn   : warn

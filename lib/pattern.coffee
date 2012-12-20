@@ -16,20 +16,7 @@ timeFormats =
   fulltime : 'YYYY-MM-DD HH:mm:ss'
   numbertime : 'YYYYMMDDHHmmss'
 
-
-
 justlogPath = __dirname + '/justlog' + path.extname __filename
-
-
-
-  # # TimeFormat::masks ="2012-12-19T10:02:53.869Z"
-  #   default : "yyyy-mm-dd HH:MM:ss"
-  #   rfc822 : "ddd, dd mmm yyyy HH:MM:ss Z"
-  #   rfc850 : "dddd, dd-mmm-yy HH:MM:ss Z"
-  #   ctime : "ddd mmm d HH:MM:ss yyyy"
-  #   iso8601 : "yyyy-mm-dd'T'HH:MM:ssO"
-  #   date : "yyyy-mm-dd"
-  #   number : "yyyymmddHHMMss"
 
 module.exports =
   ###
@@ -38,14 +25,15 @@ module.exports =
    * @type {object}
    *  colored :
    *   - SIMPLE-COLOR: log message and colored level text
+   *   - SIMPLE-NOCOLOR:  like simple without color
    *   - COLOR: tracestack, time, log message and colored level text
    *  nocolor :
-   *   - SIMPLE-NOCOLOR:  like simple without color
    *   - NOCOLOR: like color without color
    *   - FILE : fulltime, tracestack, log message and level text
    *  connect-middleware : ()
    *   - ACCESSLOG: apache access-log
    *   - ACCESSLOG-RT: like access-log with response-time on the end (with microsecond)
+   *   - ACCESSLOG-COLOR: like ACCESSLOG-RT with ansi colored
   ###
   pre :
     'SIMPLE-NOCOLOR' : '#{level} #{msg}'
@@ -68,6 +56,15 @@ module.exports =
       #{statusCode} #{response.length}
       "#{headers.referer}"
       "#{headers["user-agent"]}"
+      #{response.time}
+    '''.replace /\n/g, ' '
+    'ACCESSLOG-COLOR' : '''
+      #{removeAddrColored} #{ident} #{user}
+      [#{now "DD/MMM/YYYY:HH:mm:ss ZZ"}]
+      "#{methodColored} #{urlColored} HTTP/#{httpVersion}"
+      #{statusCodeColored} #{response.length}
+      "#{color:blue}#{headers.referer}#{color.reset}"
+      "#{color:cyan}#{headers["user-agent"]#{color.reset}}"
       #{response.time}
     '''.replace /\n/g, ' '
 
@@ -102,8 +99,8 @@ module.exports =
     msg = '' if msg is null
     msg = msg: msg.toString() if typeof msg isnt 'object'
     msg.color        = colors
-    msg.color.level  = levels.color level
-    msg.level        = levels.text level
+    msg.color.level  = levels.color[level]
+    msg.level        = levels.text[level]
     msg.levelColored = "#{msg.color.level}#{msg.level}#{colors.reset}"
     if render.time
       now = moment()
@@ -133,5 +130,3 @@ module.exports =
         msg.stack = "#{msg.file}:#{msg.lineno}"
         msg.stackColored = "#{colors.underline}#{colors.cyan}#{msg.file}:#{colors.yellow}#{msg.lineno}#{colors.reset}"
     render(msg) + "\n"
-
-

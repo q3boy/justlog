@@ -41,7 +41,6 @@ describe 'JustLog', ->
         done()
       , 100
 
-
   describe 'options init', ->
     it 'check default options', (done)->
       l = new jl
@@ -212,65 +211,68 @@ describe 'JustLog', ->
           done()
       , 200
     it 'logfile rotate by time', (done)->
+      nowMs = new Date().getMilliseconds()
       this.timeout 10000
-      options.stdio = false
-      options.file =
-        # watcher_timeout : 10
-        path : "[#{dir}]/ss.txt"
-      l = new jl options
-      files = [l.file.path]
-      l.on 'rotate', (prev, curr) ->
-        files.push curr
-      tflag = 0
-      l.on 'timer', (ms)->
-        e(ms).to.below 1001
-        e(ms).to.above 99
-        tflag++
-        # console.log prev, curr
-      l.warn 'simple warn' # first log
       setTimeout ->
-        l.error 'simple error1'
-      , 1000
-      setTimeout ->
-        l.error 'simple error2'
-      , 2000
-      setTimeout ->
-        l.error 'simple error3'
-        l.close ->
-          # console.log files
-          e(tflag).to.be 4
-          flag = 0
-          for k in files
-            switch ++flag
-              when 1
-                e(fs.readFileSync(k).toString()).to.match ///
-                  ^
-                  \d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\s
-                  \[WARN\]\s+\((out/test/)?tests/test-justlog\.(js|coffee):\d+\)\ssimple\swarn\n
-                  $
-                ///
-              when 2
-                e(fs.readFileSync(k).toString()).to.match ///
-                  ^
-                  \d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\s
-                  \[ERROR\]\s+\((out/test/)?tests/test-justlog\.(js|coffee):\d+\)\ssimple\serror1\n
-                  $
-                ///
-              when 3
-                e(fs.readFileSync(k).toString()).to.match ///
-                  ^
-                  \d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\s
-                  \[ERROR\]\s+\((out/test/)?tests/test-justlog\.(js|coffee):\d+\)\ssimple\serror2\n
-                  $
-                ///
-              when 4
-                e(fs.readFileSync(k).toString()).to.match ///
-                  ^
-                  \d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\s
-                  \[ERROR\]\s+\((out/test/)?tests/test-justlog\.(js|coffee):\d+\)\ssimple\serror3\n
-                  $
-                ///
-            fs.unlinkSync k
-          e(flag).to.be 4
-          done()
-      , 3000
+        options.stdio = false
+        options.file =
+          # watcher_timeout : 10
+          path : "[#{dir}]/ss.txt"
+        l = new jl options
+        files = [l.file.path]
+        l.on 'rotate', (prev, curr) ->
+          files.push curr
+        tflag = 0
+        l.on 'timer', (ms)->
+          e(ms).to.below 1001
+          e(ms).to.above 99
+          tflag++
+          # console.log prev, curr
+        l.warn 'simple warn' # first log
+        setTimeout ->
+          l.error 'simple error1'
+        , 1000
+        setTimeout ->
+          l.error 'simple error2'
+        , 2000
+        setTimeout ->
+          l.error 'simple error3'
+          l.close ->
+            # console.log files
+            e(tflag).to.above 3
+            flag = 0
+            for k in files
+              switch ++flag
+                when 1
+                  e(fs.readFileSync(k).toString()).to.match ///
+                    ^
+                    \d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\s
+                    \[WARN\]\s+\((out/test/)?tests/test-justlog\.(js|coffee):\d+\)\ssimple\swarn\n
+                    $
+                  ///
+                when 2
+                  e(fs.readFileSync(k).toString()).to.match ///
+                    ^
+                    \d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\s
+                    \[ERROR\]\s+\((out/test/)?tests/test-justlog\.(js|coffee):\d+\)\ssimple\serror1\n
+                    $
+                  ///
+                when 3
+                  e(fs.readFileSync(k).toString()).to.match ///
+                    ^
+                    \d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\s
+                    \[ERROR\]\s+\((out/test/)?tests/test-justlog\.(js|coffee):\d+\)\ssimple\serror2\n
+                    $
+                  ///
+                when 4
+                  e(fs.readFileSync(k).toString()).to.match ///
+                    ^
+                    \d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\s
+                    \[ERROR\]\s+\((out/test/)?tests/test-justlog\.(js|coffee):\d+\)\ssimple\serror3\n
+                    $
+                  ///
+              fs.unlinkSync k
+            e(flag).to.be 4
+            done()
+        , 3000
+      , nowMs + 10

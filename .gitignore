@@ -16,3 +16,5 @@ results
 /coverage.html
 /out/test
 /node_modules
+
+/tests/log_file/
