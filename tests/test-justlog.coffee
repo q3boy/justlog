@@ -16,7 +16,7 @@ class mockStream
 
 describe 'JustLog', ->
   jl = require '../lib/justlog'
-  {pre: patterns} = require '../lib/pattern'
+  {pre: predefined} = require '../lib/pattern'
   options = stdout = stderr = l = null
   dir = "#{__dirname}/log_file"
 
@@ -44,13 +44,18 @@ describe 'JustLog', ->
   describe 'options init', ->
     it 'check default options', (done)->
       l = new jl
+      e(jl.INFO).to.be  l.INFO
+      e(jl.DEBUG).to.be l.DEBUG
+      e(jl.WARN).to.be  l.WARN
+      e(jl.ERROR).to.be l.ERROR
+
       e(l.options.file.level).to.be           jl.EXCEPTION
       e(l.options.file.path).to.be            "[#{process.cwd()}/logs/_mocha-]YYYY-MM-DD[.log]"
       e(l.options.stdio.level).to.be          jl.ALL
       e(l.options.stdio.stdout).to.be         process.stdout
       e(l.options.stdio.stderr).to.be         process.stderr
-      e(l.options.file.render.pattern).to.be  patterns.FILE
-      e(l.options.stdio.render.pattern).to.be patterns.COLOR
+      e(l.options.file.render.pattern).to.be  predefined.file
+      e(l.options.stdio.render.pattern).to.be predefined.color
       setTimeout done, 100
   describe 'stdio', ->
     it 'stdout with default output pattern', (done)->
@@ -119,7 +124,8 @@ describe 'JustLog', ->
       options.stdio =
         level : 0
       options.file =
-        watcher_timeout : 10
+        _watcher_timeout : 10
+
       l = new jl options
       flag = 0
       l.on 'rename', (file) ->
@@ -164,7 +170,7 @@ describe 'JustLog', ->
     it 'file inode changed when current stream is not closed', (done)->
       options.stdio = false
       options.file =
-        watcher_timeout : 10
+        _watcher_timeout : 10
       l = new jl options
       flag = 0
       l.on 'rename', (file) ->

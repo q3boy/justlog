@@ -20,24 +20,64 @@ defaultLogFile = "
 #{path.basename (path.basename process.argv[1] , '.js'), '.coffee'}
 -]YYYY-MM-DD[.log]
 "
-MIN_ROTATE_MS = 100 #
 
+# log rotate minimum ms
+MIN_ROTATE_MS = 100
+
+###
+/**
+ * @name rename
+ * @description log file is renamed
+ * @event
+ * @param {String} [file], filepath
+###
+###
+/**
+ * @name timer
+ * @description a new rotate timer is set
+ * @event
+ * @param {Number} [ms], milliseconds for next rotate
+###
+###
+/**
+ * @name rotate
+ * @description file rotated
+ * @event
+ * @param {string} [prev], old filepath
+ * @param {string} [curr], new filepath
+###
 class JustLog extends events.EventEmitter
 
+  ###
+  /**
+   * @param  {Object} options
+   *  - {String} [encodeing='utf-8'],  log text encoding
+   *  - file :
+   *    - {Number} [level=error|warn], file log levels
+   *    - {String} [pattern='file'],   log line pattern
+   *    - {String} [mode='0664'],      log file mode
+   *    - {String} [dir_mode='2775'],  log dir mode
+   *    - {String} [path="[$CWD/logs/$MAIN_FILE_BASENAME-]YYYY-MM-DD[.log]"],   log file path pattern
+   *  - stdio:
+   *    - {Number}         [level=all],             file log levels
+   *    - {String}         [pattern='color'],       log line pattern
+   *    - {WritableStream} [stdout=process.stdout], info & debug output stream
+   *    - {WritableStream} [stderr=process.stderr], warn & error output stream
+  ###
   constructor : (options)->
     @options = os {
       encoding : 'utf-8'
       file : {
         level           : error | warn
-        pattern         : pattern.pre.FILE
+        pattern         : 'file'
         path            : defaultLogFile
         mode            : '0664'
         dir_mode        : '2775'
-        watcher_timeout : 1000
+        _watcher_timeout : 1000
       }
       stdio : {
         level   : error | warn | debug | info
-        pattern : pattern.pre.COLOR
+        pattern : 'color'
         stdout  : process.stdout
         stderr  : process.stderr
       }
@@ -47,6 +87,10 @@ class JustLog extends events.EventEmitter
     @options.file  = false if @options.file.level is 0
     @options.stdio = false if @options.stdio.level is 0
 
+    # set level define as properties
+    @[k.toUpperCase()] = v for k, v of levels.levels # levels const
+
+    # file info init
     @file =
       path : null, stream : null, timer : null, opening : false
       watcher: null, ino: null
@@ -57,11 +101,11 @@ class JustLog extends events.EventEmitter
     if @options.stdio
       @stdout = @options.stdio.stdout
       @stderr = @options.stdio.stderr
-      @options.stdio.render = pattern.compile @options.stdio.pattern
+      @options.stdio.render = pattern.compile pattern.pre[@options.stdio.pattern] ? @options.stdio.pattern
 
     # need file
     if @options.file
-      @options.file.render  = pattern.compile @options.file.pattern
+      @options.file.render = pattern.compile pattern.pre[@options.file.pattern] ? @options.file.pattern
       @_initFile()
 
   # overwrite emit
@@ -142,7 +186,7 @@ class JustLog extends events.EventEmitter
     # set file path
     @_setFilePath()
     @_newStream()
-    @file.watcher = setInterval @_checkFile.bind(@), @options.file.watcher_timeout
+    @file.watcher = setInterval @_checkFile.bind(@), @options.file._watcher_timeout
     @_rotateFile()
 
 
@@ -189,11 +233,40 @@ class JustLog extends events.EventEmitter
     @_stdioLog msg, level if @options.stdio && (@options.stdio.level & level)
     @
 
+  ###
+  /**
+   * send an info log
+   * @param  {Mixed} msg... log info (run as console.log)
+   * @return {JustLog}      return self object for chain call
+  ###
   info  : (msg...) -> @_log msg, info
+  ###
+  /**
+   * send an debug log
+   * @param  {Mixed} msg... log info (run as console.log)
+   * @return {JustLog}      return self object for chain call
+  ###
   debug : (msg...) -> @_log msg, debug
+  ###
+  /**
+   * send an warn log
+   * @param  {Mixed} msg... log info (run as console.log)
+   * @return {JustLog}      return self object for chain call
+  ###
   warn  : (msg...) -> @_log msg, warn
+  ###
+  /**
+   * send an error log
+   * @param  {Mixed} msg... log info (run as console.log)
+   * @return {JustLog}      return self object for chain call
+  ###
   error : (msg...) -> @_log msg, error
 
+  ###
+  /**
+   * close log
+   * @param  {Function} cb after close callback
+  ###
   close : (cb) ->
     if @options.file is false or @closed
       process.nextTick cb if cb
@@ -212,6 +285,6 @@ class JustLog extends events.EventEmitter
 create = (options) -> new JustLog options
 
 create[k.toUpperCase()] = v for k, v of levels.levels # levels const
-create[k]               = v for k, v of pattern.pre   # pre-defined log format
+# create[k]               = v for k, v of pattern.pre   # pre-defined log format
 
 module.exports = create

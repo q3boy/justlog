@@ -24,24 +24,24 @@ module.exports =
    * pre-defined log patterns
    * @type {object}
    *  colored :
-   *   - SIMPLE-COLOR: log message and colored level text
-   *   - SIMPLE-NOCOLOR:  like simple without color
-   *   - COLOR: tracestack, time, log message and colored level text
+   *   - simple-color: log message and colored level text
+   *   - simple-nocolor:  like simple without color
+   *   - color: tracestack, time, log message and colored level text
    *  nocolor :
-   *   - NOCOLOR: like color without color
-   *   - FILE : fulltime, tracestack, log message and level text
+   *   - nocolor: like color without color
+   *   - file : fulltime, tracestack, log message and level text
    *  connect-middleware : ()
-   *   - ACCESSLOG: apache access-log
-   *   - ACCESSLOG-RT: like access-log with response-time on the end (with microsecond)
-   *   - ACCESSLOG-COLOR: like ACCESSLOG-RT with ansi colored
+   *   - accesslog: apache access-log
+   *   - accesslog-rt: like access-log with response-time on the end (with microsecond)
+   *   - accesslog-color: like ACCESSLOG-RT with ansi colored
   ###
   pre :
-    'SIMPLE-NOCOLOR' : '#{level} #{msg}'
-    'SIMPLE-COLOR'   : '#{levelColored} #{msg}'
-    'NOCOLOR'        : '#{time} [#{level.trim()}] (#{stack) #{msg}'
-    'COLOR'          : '#{time} #{levelColored} #{stackColored} #{msg}'
-    'FILE'           : '#{fulltime} [#{level.trim()}] (#{stack}) #{msg}'
-    'ACCESSLOG' : '''
+    'simple-nocolor' : '#{level} #{msg}'
+    'simple-color'   : '#{levelColored} #{msg}'
+    'nocolor'        : '#{time} [#{level.trim()}] (#{stack) #{msg}'
+    'color'          : '#{time} #{levelColored} #{stackColored} #{msg}'
+    'file'           : '#{fulltime} [#{level.trim()}] (#{stack}) #{msg}'
+    'accesslog' : '''
       #{removeAddr} #{ident} #{user}
       [#{now "DD/MMM/YYYY:HH:mm:ss ZZ"}]
       "#{method} #{url} HTTP/#{httpVersion}"
@@ -49,7 +49,7 @@ module.exports =
       "#{headers.referer}"
       "#{headers["user-agent"]}"
     '''.replace /\n/g, ' '
-    'ACCESSLOG-RT' : '''
+    'accesslog-rt' : '''
       #{removeAddr} #{ident} #{user}
       [#{now "DD/MMM/YYYY:HH:mm:ss ZZ"}]
       "#{method} #{url} HTTP/#{httpVersion}"
@@ -58,7 +58,7 @@ module.exports =
       "#{headers["user-agent"]}"
       #{response.time}
     '''.replace /\n/g, ' '
-    'ACCESSLOG-COLOR' : '''
+    'accesslog-color' : '''
       #{removeAddrColored} #{ident} #{user}
       [#{now "DD/MMM/YYYY:HH:mm:ss ZZ"}]
       "#{methodColored} #{urlColored} HTTP/#{httpVersion}"
