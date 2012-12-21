@@ -15,11 +15,16 @@ pattern = require './pattern'
 
 cwd = process.cwd()
 
-# default log filename
+# default log filenames
 defaultLogFile = "
 [#{cwd}/logs/
 #{path.basename (path.basename process.argv[1] , '.js'), '.coffee'}
 -]YYYY-MM-DD[.log]
+"
+defaultAccessLogFile = "
+[#{cwd}/logs/
+#{path.basename (path.basename process.argv[1] , '.js'), '.coffee'}
+-access-]YYYY-MM-DD[.log]
 "
 
 # log rotate minimum ms
@@ -264,27 +269,30 @@ class JustLog extends events.EventEmitter
       @file.timer = null
     return
 
-
-
-
-
-getHttpMsg = (req, resp) ->
-  {
-    'remote-address' : req.socket.remoteAddress
-    method           : req.method
-    url              : req.originalUrl || req.url
-    version          : req.httpVersionMajor + '.' + req.httpVersionMinor
-    status           : resp.statusCode
-    'content-length' : parseInt resp.getHeader('content-length'), 10
-    headers          : req.headers
-    rt               : new Date() - req.__justLogStartTime
-    colors           : colors
-  }
-
+###
+/**
+ * connect middleware
+   * @param  {Object} options
+   *  - {String} [encodeing='utf-8'],        log text encoding
+   *  - file :
+   *    - {Number} [level=error|warn],       file log levels
+   *    - {String} [pattern='accesslog-rt'], log line pattern
+   *    - {String} [mode='0664'],            log file mode
+   *    - {String} [dir_mode='2775'],        log dir mode
+   *    - {String} [path="[$CWD/logs/$MAIN_FILE_BASENAME-access-]YYYY-MM-DD[.log]"],   log file path pattern
+   *  - stdio:
+   *    - {Number}         [level=all],              file log levels
+   *    - {String}         [pattern='accesslog-rt'], log line pattern
+   *    - {WritableStream} [stdout=process.stdout],  info & debug output stream
+   *    - {WritableStream} [stderr=process.stderr],  warn & error output stream
+ * @param  {Function} cb(justlog)
+ * @return {Middlewtr}
+###
 middleware = (options, cb) ->
   # default pattern name
   options = os {
     file:
+      path    : defaultAccessLogFile
       pattern : 'accesslog-rt'
     stdio :
       pattern : 'accesslog-color'
@@ -305,29 +313,18 @@ middleware = (options, cb) ->
     resp.end = (chunk, encoding) ->
       resp.end = end
       resp.end chunk, encoding
-      log.info getHttpMsg req, resp
+      log.info {
+        'remote-address' : req.socket.remoteAddress
+        method           : req.method
+        url              : req.originalUrl || req.url
+        version          : req.httpVersionMajor + '.' + req.httpVersionMinor
+        status           : resp.statusCode
+        'content-length' : parseInt resp.getHeader('content-length'), 10
+        headers          : req.headers
+        rt               : new Date() - req.__justLogStartTime
+        colors           : colors
+      }
     next()
-# req._startTime = new Date;
-
-#     // immediate
-#     if (immediate) {
-#       var line = fmt(exports, req, res);
-#       if (null == line) return;
-#       stream.write(line + '\n');
-#     // proxy end to output logging
-#     } else {
-#       var end = res.end;
-#       res.end = function(chunk, encoding){
-#         res.end = end;
-#         res.end(chunk, encoding);
-#         var line = fmt(exports, req, res);
-#         if (null == line) return;
-#         stream.write(line + '\n');
-#       };
-#     }
-
-
-#     next();
 
 create = (options) -> new JustLog options
 # set levels const
