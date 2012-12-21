@@ -1,6 +1,7 @@
 # ansi colors
 esc = '\x1B['
-module.exports =
+
+Colors =
   black      : esc + '30m', bg_black   : esc + '40m'
   red        : esc + '31m', bg_red     : esc + '41m'
   green      : esc + '32m', bg_green   : esc + '42m'
@@ -12,5 +13,22 @@ module.exports =
   reset      : esc + '0m'
   bold       : esc + '1m'
   underline  : esc + '4m'
-
-
+  status : (status) ->
+    for k,c of statusColors
+      break if status >= k
+    c + status + Colors.reset
+  method : (method) ->
+    (methodColors[method] ? Colors.yellow) + method + Colors.reset
+module.exports = Colors
+methodColors = {
+  GET    : Colors.green
+  POST   : Colors.cyan
+  PUT    : Colors.cyan
+  DELETE : Colors.red
+}
+statusColors = {
+  500 : Colors.red
+  400 : Colors.yellow
+  300 : Colors.cyan
+  _   : Colors.green
+}

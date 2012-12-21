@@ -1,6 +1,6 @@
 name: justlog
 main: index.js
-version: 0.0.2
+version: 0.0.3
 description: 'a powerful log libs'
 author:
   name: q3boy
@@ -14,11 +14,11 @@ repository:
 bugs:
   url: https://github.com/q3boy/justlog/issues
 dependencies:
-  coffee-script: '*'
   options-stream : '*'
   mkdirp : '*'
   moment : '*'
 devDependencies:
+  coffee-script: '*'
   mocha: '*'
   expect.js: '*'
   jscover: '*'

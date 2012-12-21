@@ -6,6 +6,7 @@ moment  = require 'moment'
 mkdirp  = require 'mkdirp'
 os      = require 'options-stream'
 levels  = require './levels'
+colors  = require './colors'
 timeout = require './timeout'
 pattern = require './pattern'
 
@@ -51,7 +52,7 @@ class JustLog extends events.EventEmitter
         path            : defaultLogFile
         mode            : '0664'
         dir_mode        : '2775'
-        _watcher_timeout : 1000
+        _watcher_timeout : 5007
       }
       stdio : {
         level   : error | warn | debug | info
@@ -78,12 +79,11 @@ class JustLog extends events.EventEmitter
     if @options.stdio
       @stdout = @options.stdio.stdout
       @stderr = @options.stdio.stderr
-      @options.stdio.render = pattern.compile pattern.pre[@options.stdio.pattern] ? @options.stdio.pattern
+      @options.stdio.render = pattern.compile @options.stdio.pattern
 
     # need file
     if @options.file
-      @options.file.render = pattern.compile pattern.pre[@options.file.pattern] ? @options.file.pattern
-
+      @options.file.render = pattern.compile @options.file.pattern
       @_initFile()
 
   # overwrite emit
@@ -201,12 +201,16 @@ class JustLog extends events.EventEmitter
     @file.stream.write line, @options.encoding
 
   _stdioLog : (msg, level) ->
+    # console.log  @options.stdio.render,  @options.stdio.render.toString()
     line = pattern.format @options.stdio.render, msg, level
+    # console.log line
     (if level & (error|warn) then @stderr else @stdout).write line, @options.encoding
 
-
   _log : (msg, level) ->
-    msg = util.format msg...
+    if msg.length isnt 1 or typeof msg[0] isnt 'object'
+      msg = util.format msg...
+    else
+      msg = msg[0]
     @_fileLog  msg, level if @options.file  && (@options.file.level  & level)
     @_stdioLog msg, level if @options.stdio && (@options.stdio.level & level)
     @
@@ -260,9 +264,75 @@ class JustLog extends events.EventEmitter
       @file.timer = null
     return
 
+
+
+
+
+getHttpMsg = (req, resp) ->
+  {
+    'remote-address' : req.socket.remoteAddress
+    method           : req.method
+    url              : req.originalUrl || req.url
+    version          : req.httpVersionMajor + '.' + req.httpVersionMinor
+    status           : resp.statusCode
+    'content-length' : parseInt resp.getHeader('content-length'), 10
+    headers          : req.headers
+    rt               : new Date() - req.__justLogStartTime
+    colors           : colors
+  }
+
+middleware = (options, cb) ->
+  # default pattern name
+  options = os {
+    file:
+      pattern : 'accesslog-rt'
+    stdio :
+      pattern : 'accesslog-color'
+  }, options
+  # make sure level info need log
+  options.file.level |= info
+  options.stdio.level |= info
+  # new log object
+  log = new JustLog options
+  # if callback
+  cb log if cb
+  # middleware
+  (req, resp, next) =>
+    # response timer
+    req.__justLogStartTime = new Date
+    # hack resp.end
+    end = resp.end
+    resp.end = (chunk, encoding) ->
+      resp.end = end
+      resp.end chunk, encoding
+      log.info getHttpMsg req, resp
+    next()
+# req._startTime = new Date;
+
+#     // immediate
+#     if (immediate) {
+#       var line = fmt(exports, req, res);
+#       if (null == line) return;
+#       stream.write(line + '\n');
+#     // proxy end to output logging
+#     } else {
+#       var end = res.end;
+#       res.end = function(chunk, encoding){
+#         res.end = end;
+#         res.end(chunk, encoding);
+#         var line = fmt(exports, req, res);
+#         if (null == line) return;
+#         stream.write(line + '\n');
+#       };
+#     }
+
+
+#     next();
+
 create = (options) -> new JustLog options
-
-create[k.toUpperCase()] = v for k, v of levels.levels # levels const
-# create[k]               = v for k, v of pattern.pre   # pre-defined log format
-
+# set levels const
+create[k.toUpperCase()] = v for k, v of levels.levels
+# set middleware
+create.middleware = middleware
+# exports
 module.exports = create

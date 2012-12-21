@@ -1,4 +1,4 @@
-coffee = require 'coffee-script'
+# coffee = require 'coffee-script'
 moment = require 'moment'
 colors = require './colors'
 path   = require 'path'
@@ -9,6 +9,8 @@ reg = [
   /\b(file|lineno|stack|stackColored)\b/
   /\b(now|time|date|fulltime|numbertime|mstimestamp|timestamp|moment)\b/
   /\((.+?):(\d+):\d+\)$/]
+stackNames = ['file', 'lineno', 'stack', 'stackColored']
+timeNames = ['now', 'time', 'date', 'fulltime', 'numbertime', 'mstimestamp', 'timestamp', 'moment']
 
 timeFormats =
   time : 'HH:mm:ss'
@@ -18,7 +20,7 @@ timeFormats =
 
 justlogPath = __dirname + '/justlog' + path.extname __filename
 
-module.exports =
+module.exports = pattern =
   ###
   /**
    * pre-defined log patterns
@@ -36,55 +38,100 @@ module.exports =
    *   - accesslog-color: like ACCESSLOG-RT with ansi colored
   ###
   pre :
-    'simple-nocolor' : '#{level} #{msg}'
-    'simple-color'   : '#{levelColored} #{msg}'
-    'nocolor'        : '#{time} [#{level.trim()}] (#{stack) #{msg}'
-    'color'          : '#{time} #{levelColored} #{stackColored} #{msg}'
-    'file'           : '#{fulltime} [#{level.trim()}] (#{stack}) #{msg}'
+    'simple-nocolor' : '{level} {msg}'
+    'simple-color'   : '{levelColored} {msg}'
+    'nocolor'        : '{time} [{levelTrim}] ({stack}) {msg}'
+    'color'          : '{time} {levelColored} {stackColored} {msg}'
+    'file'           : '{fulltime} [{levelTrim}] ({stack}) {msg}'
     'accesslog' : '''
-      #{removeAddr} #{ident} #{user}
-      [#{now "DD/MMM/YYYY:HH:mm:ss ZZ"}]
-      "#{method} #{url} HTTP/#{httpVersion}"
-      #{statusCode} #{response.length}
-      "#{headers.referer}"
-      "#{headers["user-agent"]}"
+      {remote-address} {ident} {user}
+      [{now "DD/MMM/YYYY:HH:mm:ss ZZ"}]
+      "{method} {url} HTTP/{version}"
+      {status} {content-length}
+      "{headers.referer}" "{headers.user-agent}"
     '''.replace /\n/g, ' '
     'accesslog-rt' : '''
-      #{removeAddr} #{ident} #{user}
-      [#{now "DD/MMM/YYYY:HH:mm:ss ZZ"}]
-      "#{method} #{url} HTTP/#{httpVersion}"
-      #{statusCode} #{response.length}
-      "#{headers.referer}"
-      "#{headers["user-agent"]}"
-      #{response.time}
+      {remote-address} {ident} {user}
+      [{now 'DD/MMM/YYYY:HH:mm:ss ZZ'}]
+      "{method} {url} HTTP/{version}"
+      {status} {content-length}
+      "{headers.referer}" "{headers.user-agent}" {rt}
     '''.replace /\n/g, ' '
     'accesslog-color' : '''
-      #{removeAddrColored} #{ident} #{user}
-      [#{now "DD/MMM/YYYY:HH:mm:ss ZZ"}]
-      "#{methodColored} #{urlColored} HTTP/#{httpVersion}"
-      #{statusCodeColored} #{response.length}
-      "#{color:blue}#{headers.referer}#{color.reset}"
-      "#{color:cyan}#{headers["user-agent"]#{color.reset}}"
-      #{response.time}
+      {remote-address@yellow} {ident} {user}
+      [{now 'DD/MMM/YYYY:HH:mm:ss ZZ'}]
+      "{colors.method method} {url@underline,bold,blue} HTTP/{version}"
+      {colors.status status} {content-length}
+      "{headers.referer@blue}" "{headers.user-agent@cyan}" {rt}
     '''.replace /\n/g, ' '
 
   ###
   /**
    * compile log-format pattern to a render function
-   * @param  {string} tpl  pattern string
+   * @param  {string} code pattern string
    * @return {function}    pattern render function
    *  - {bool}   [trace]   need tracestack info
    *  - {bool}   [time]    need logtime info
    *  - {string} [pattern] pattern text
   ###
-  compile : (pattern)->
-    # wrapper
-    code = coffee.compile('"' + pattern + '"', bare:true).trim()
-    code = "with(__vars||{}){return #{code}}"
+  compile : (pat)->
+    code = pattern.pre[pat] ? pat # check perdefines
+    code = code.replace /"/g, '\\"' # slash '"'
+    useStack = false
+    useTime = false
+    # match all tokens
+    funcs = []
+    code = code.replace ///
+      \{
+      ([a-zA-Z][\-\w]+)      # var name
+      (?:\.([\w\-]+))?       # sub key name
+      (?:\s([^}@]+?))?       # function args
+      (?:@((?:[a-z_]+,?)+))? # style
+      \}
+    ///g, (match, name, key, args, style) ->
+      useStack = true if name in stackNames # need tracestack
+      useTime = true if name in timeNames   # need time
+      codes = []
+
+      # push style block
+      code = ''
+      styles = style.split ',' if style
+      if styles
+        code += colors[style] for style in styles
+        codes.push '"' + code + '"'
+
+      # push vars block
+      code = ''
+      if args # is function
+        num = funcs.length
+        funcs.push [name, key, args.replace(/\\"/g, '"')]
+        code = "__func[#{num}]"
+      else # is vars
+        code += "__vars['#{name}']#{if key then "['#{key}']" else ''}"
+      codes.push '(' + code + '||"-")'
+
+      # push style reset block
+      codes.push '"' + colors.reset + '"' if styles
+      '"+\n' + codes.join('+\n') + '+\n"'
+
+    # remove empty string
+    code = ('"' + code + '"').replace(/^""\+$/mg, '')
+    code = "return #{code.trim()};"
+
+    # __func prefix
+    funcCode = []
+    if funcs.length > 0
+      funcCode.push 'var __func = [];with(__vars||{}){'
+      for [name, key, args] in funcs
+        funcCode.push "__func.push(__vars['#{name}']#{if key then "['#{key}']" else ''}(#{args}));"
+      funcCode.push '}'
+    code = funcCode.join(";\n")+code
+
+    # make function
     func = new Function('__vars', code)
-    func.stack   = reg[0].test pattern # need trace stack for get log position
-    func.time    = reg[1].test pattern # need moment for time format
-    func.pattern = pattern
+    func.stack   = useStack # need trace stack for get log position
+    func.time    = useTime # need moment for time format
+    func.pattern = pat
     func
 
   ###
@@ -101,6 +148,7 @@ module.exports =
     msg.color        = colors
     msg.color.level  = levels.color[level]
     msg.level        = levels.text[level]
+    msg.levelTrim    = msg.level.trim()
     msg.levelColored = "#{msg.color.level}#{msg.level}#{colors.reset}"
     if render.time
       now = moment()
@@ -130,3 +178,4 @@ module.exports =
         msg.stack = "#{msg.file}:#{msg.lineno}"
         msg.stackColored = "#{colors.underline}#{colors.cyan}#{msg.file}:#{colors.yellow}#{msg.lineno}#{colors.reset}"
     render(msg) + "\n"
+
