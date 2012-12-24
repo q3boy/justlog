@@ -31,7 +31,7 @@ module.exports = pattern =
    *   - color: tracestack, time, log message and colored level text
    *  nocolor :
    *   - nocolor: like color without color
-   *   - event-color: time, log message and colored event & level text
+   *   - event-color: time, log message and colored event
    *  nocolor :
    *   - event-nocolor: like event-color without color
    *   - file : fulltime, tracestack, log message and level text
@@ -46,8 +46,8 @@ module.exports = pattern =
     'nocolor'        : '{time} [{levelTrim}] ({stack}) {msg}'
     'color'          : '{time} {levelColored} {stackColored} {msg}'
     'file'           : '{fulltime} [{levelTrim}] ({stack}) {msg}'
-    'event-color'    : '{time} {levelColored} {color.event event} {args}'
-    'event-nocolor'  : '{fulltime} [{levelTrim}] {event} {args}'
+    'event-color'    : '{time} {color.event event} {args}'
+    'event-nocolor'  : '{fulltime} {event} {args}'
     'accesslog' : '''
       {remote-address} {ident} {user}
       [{now "DD/MMM/YYYY:HH:mm:ss ZZ"}]
