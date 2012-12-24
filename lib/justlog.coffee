@@ -322,7 +322,6 @@ middleware = (options, cb) ->
         'content-length' : parseInt resp.getHeader('content-length'), 10
         headers          : req.headers
         rt               : new Date() - req.__justLogStartTime
-        colors           : colors
       }
     next()
 

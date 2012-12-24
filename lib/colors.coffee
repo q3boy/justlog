@@ -19,7 +19,12 @@ Colors =
     c + status + Colors.reset
   method : (method) ->
     (methodColors[method] ? Colors.yellow) + method + Colors.reset
+  event : (event) ->
+    (eventColors[event] ? Colors.green) + event + Colors.reset
 module.exports = Colors
+eventColors = {
+  'error' : Colors.red
+}
 methodColors = {
   GET    : Colors.green
   POST   : Colors.cyan

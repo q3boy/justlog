@@ -397,8 +397,7 @@ middleware = function(options, cb) {
         status: resp.statusCode,
         'content-length': parseInt(resp.getHeader('content-length'), 10),
         headers: req.headers,
-        rt: new Date() - req.__justLogStartTime,
-        colors: colors
+        rt: new Date() - req.__justLogStartTime
       });
     };
     return next();

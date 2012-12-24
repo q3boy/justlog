@@ -38,6 +38,9 @@ module.exports = pattern = {
      *   - color: tracestack, time, log message and colored level text
      *  nocolor :
      *   - nocolor: like color without color
+     *   - event-color: time, log message and colored event & level text
+     *  nocolor :
+     *   - event-nocolor: like event-color without color
      *   - file : fulltime, tracestack, log message and level text
      *  connect-middleware : ()
      *   - accesslog: apache access-log
@@ -51,9 +54,11 @@ module.exports = pattern = {
     'nocolor': '{time} [{levelTrim}] ({stack}) {msg}',
     'color': '{time} {levelColored} {stackColored} {msg}',
     'file': '{fulltime} [{levelTrim}] ({stack}) {msg}',
+    'event-color': '{time} {levelColored} {color.event event} {args}',
+    'event-nocolor': '{fulltime} [{levelTrim}] {event} {args}',
     'accesslog': '{remote-address} {ident} {user}\n[{now "DD/MMM/YYYY:HH:mm:ss ZZ"}]\n"{method} {url} HTTP/{version}"\n{status} {content-length}\n"{headers.referer}" "{headers.user-agent}"'.replace(/\n/g, ' '),
     'accesslog-rt': '{remote-address} {ident} {user}\n[{now \'DD/MMM/YYYY:HH:mm:ss ZZ\'}]\n"{method} {url} HTTP/{version}"\n{status} {content-length}\n"{headers.referer}" "{headers.user-agent}" {rt}'.replace(/\n/g, ' '),
-    'accesslog-color': '{remote-address@yellow} {ident} {user}\n[{now \'DD/MMM/YYYY:HH:mm:ss ZZ\'}]\n"{colors.method method} {url@underline,bold,blue} HTTP/{version}"\n{colors.status status} {content-length}\n"{headers.referer@blue}" "{headers.user-agent@cyan}" {rt}'.replace(/\n/g, ' ')
+    'accesslog-color': '{remote-address@yellow} {ident} {user}\n[{now \'DD/MMM/YYYY:HH:mm:ss ZZ\'}]\n"{color.method method} {url@underline,bold,blue} HTTP/{version}"\n{color.status status} {content-length}\n"{headers.referer@blue}" "{headers.user-agent@cyan}" {rt}'.replace(/\n/g, ' ')
   },
   /*
     /**
