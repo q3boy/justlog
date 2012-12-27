@@ -59,7 +59,7 @@ JustLog = (function(_super) {
 
 
   function JustLog(options) {
-    var k, v, _ref;
+    var k, v, _i, _len, _ref, _ref1;
     this.options = os({
       encoding: 'utf-8',
       file: {
@@ -105,6 +105,11 @@ JustLog = (function(_super) {
     if (this.options.file) {
       this.options.file.render = pattern.compile(this.options.file.pattern);
       this._initFile();
+    }
+    _ref1 = ['info', 'debug', 'warn', 'error'];
+    for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+      k = _ref1[_i];
+      this[k] = this[k].bind(this);
     }
   }
 

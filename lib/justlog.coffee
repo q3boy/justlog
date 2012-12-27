@@ -91,6 +91,8 @@ class JustLog extends events.EventEmitter
       @options.file.render = pattern.compile @options.file.pattern
       @_initFile()
 
+    @[k] = @[k].bind @ for k in ['info', 'debug', 'warn', 'error']
+
   # overwrite emit
   emit : (args...)->
     super args...
