@@ -369,8 +369,8 @@ JustLog = (function(_super) {
 */
 
 
-middleware = function(options, cb) {
-  var log,
+middleware = function(options) {
+  var log, mw,
     _this = this;
   options = os({
     file: {
@@ -384,10 +384,7 @@ middleware = function(options, cb) {
   options.file.level |= info;
   options.stdio.level |= info;
   log = new JustLog(options);
-  if (cb) {
-    cb(log);
-  }
-  return function(req, resp, next) {
+  mw = function(req, resp, next) {
     var end;
     req.__justLogStartTime = new Date;
     end = resp.end;
@@ -407,6 +404,8 @@ middleware = function(options, cb) {
     };
     return next();
   };
+  mw.justlog = log;
+  return mw;
 };
 
 create = function(options) {

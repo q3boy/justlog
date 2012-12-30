@@ -290,7 +290,7 @@ class JustLog extends events.EventEmitter
  * @param  {Function} cb(justlog)
  * @return {Middlewtr}
 ###
-middleware = (options, cb) ->
+middleware = (options) ->
   # default pattern name
   options = os {
     file:
@@ -304,10 +304,8 @@ middleware = (options, cb) ->
   options.stdio.level |= info
   # new log object
   log = new JustLog options
-  # if callback
-  cb log if cb
   # middleware
-  (req, resp, next) =>
+  mw = (req, resp, next) =>
     # response timer
     req.__justLogStartTime = new Date
     # hack resp.end
@@ -326,6 +324,8 @@ middleware = (options, cb) ->
         rt               : new Date() - req.__justLogStartTime
       }
     next()
+  mw.justlog = log
+  mw
 
 create = (options) -> new JustLog options
 # set levels const

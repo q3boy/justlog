@@ -321,10 +321,8 @@ describe 'JustLog', ->
       , nowMs + 10
   describe 'middleware', ->
     it 'simple 200 response', (done)->
-      l = null
-      m = jl.middleware(options, (ll)->
-        l = ll
-      )
+      m = jl.middleware options
+      l = m.justlog
       mock.resp.statusCode = 200
       mock.req.url = '/simple_200'
       m mock.req, mock.resp, -> setTimeout (->mock.resp.end 'some data1'), 20
