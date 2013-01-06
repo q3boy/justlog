@@ -13,7 +13,7 @@ describe 'Pattern Tools', ->
       render = pat.compile 'simple {var1} simple'
       e(render({var1:'vars'})).to.be 'simple vars simple'
     it 'with time', ->
-      for k in ['now', 'time', 'date', 'fulltime', 'numbertime', 'mstimestamp', 'timestamp', 'moment']
+      for k in ['now', 'time', 'date', 'fulltime', 'numbertime', 'mstimestamp', 'timestamp']
         render = pat.compile 'simple {' + k + '} simple'
         e(render.time).to.be true
     it 'with trace stack', ->
@@ -40,7 +40,7 @@ describe 'Pattern Tools', ->
         e(pat.format render, {foo:((v)->v), bar:123}, 1).to.be 'object vars 123\n'
     describe 'predefines', ->
       it 'level text colored and message', ->
-        render = pat.compile 'simple colored {levelColored} {msg}'
+        render = pat.compile 'simple colored {color.level level} {msg}'
         e(pat.format render, 'msg', 2).to.be 'simple colored \x1b[36mDEBUG\x1b[0m msg\n'
       it 'with predefined time', ->
         render = pat.compile 'simple colored {time} {msg}'

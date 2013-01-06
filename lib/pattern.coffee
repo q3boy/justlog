@@ -10,7 +10,7 @@ reg = [
   /\b(now|time|date|fulltime|numbertime|mstimestamp|timestamp|moment)\b/
   /\((.+?):(\d+):\d+\)$/]
 stackNames = ['file', 'lineno', 'stack', 'stackColored']
-timeNames = ['now', 'time', 'date', 'fulltime', 'numbertime', 'mstimestamp', 'timestamp', 'moment']
+timeNames = ['now', 'time', 'date', 'fulltime', 'numbertime', 'mstimestamp', 'timestamp']
 
 timeFormats =
   time : 'HH:mm:ss'
@@ -42,9 +42,9 @@ module.exports = pattern =
   ###
   pre :
     'simple-nocolor' : '{level} {msg}'
-    'simple-color'   : '{levelColored} {msg}'
+    'simple-color'   : '{color.level level} {msg}'
     'nocolor'        : '{time} [{levelTrim}] ({stack}) {msg}'
-    'color'          : '{time} {levelColored} {stackColored} {msg}'
+    'color'          : '{time} {color.level level} {stackColored} {msg}'
     'file'           : '{fulltime} [{levelTrim}] ({stack}) {msg}'
     'event-color'    : '{time} {color.event event} {args}'
     'event-nocolor'  : '{fulltime} {event} {args}'
@@ -151,17 +151,14 @@ module.exports = pattern =
     msg = '' if msg is null
     msg = msg: msg.toString() if typeof msg isnt 'object'
     msg.color        = colors
-    msg.color.level  = levels.color[level]
     msg.level        = levels.text[level]
     msg.levelTrim    = msg.level.trim()
-    msg.levelColored = "#{msg.color.level}#{msg.level}#{colors.reset}"
     if render.time
       now = moment()
       msg[k] = now.format v for k,v of timeFormats
       msg.now = now.format.bind now
       msg.mstimestamp = now.valueOf()
       msg.timestamp = Math.floor msg.mstimestamp / 1000
-      msg.moment = moment
     if render.stack
       try
         throw new Error

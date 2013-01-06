@@ -1,4 +1,5 @@
 # ansi colors
+levels = require './levels'
 esc = '\x1B['
 
 Colors =
@@ -21,10 +22,20 @@ Colors =
     (methodColors[method] ? Colors.yellow) + method + Colors.reset
   event : (event) ->
     (eventColors[event] ? Colors.green) + event + Colors.reset
+  level : (level) ->
+    (levelColors[level] ? Colors.green) + level + Colors.reset
+
+
 module.exports = Colors
 eventColors = {
   'error' : Colors.red
 }
+levelColors =
+  'INFO ' : Colors.green
+  'DEBUG' : Colors.cyan
+  'WARN ' : Colors.yellow
+  'ERROR' : Colors.red
+
 methodColors = {
   GET    : Colors.green
   POST   : Colors.cyan
