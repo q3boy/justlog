@@ -8,7 +8,7 @@ cwd = process.cwd()
 reg = [
   /\b(file|lineno|stack|stackColored)\b/
   /\b(now|time|date|fulltime|numbertime|mstimestamp|timestamp|moment)\b/
-  /\((.+?):(\d+):\d+\)$/]
+  /\(([^\)\(]+?):(\d+):\d+\)$/]
 stackNames = ['file', 'lineno', 'stack', 'stackColored']
 timeNames = ['now', 'time', 'date', 'fulltime', 'numbertime', 'mstimestamp', 'timestamp']
 
