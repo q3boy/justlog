@@ -51,6 +51,7 @@ mock.resp.headers = mock.headers
 
 describe 'JustLog', ->
   jl = require '../lib/justlog'
+  jl.config flushTime : 10
   {pre: predefined} = require '../lib/pattern'
   options = stdout = stderr = l = null
   dir = "#{__dirname}/log_file"
@@ -73,7 +74,6 @@ describe 'JustLog', ->
       setTimeout ->
         try
           for file in fs.readdirSync dir
-            # console.log file
             fs.unlinkSync "#{dir}/#{file}"
           fs.rmdirSync dir
         done()

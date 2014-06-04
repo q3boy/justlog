@@ -156,6 +156,42 @@ app.use(justlog.middleware({}));
 }
 ```
 
+## Buffer Log
+you can buffer your log if you have big visits.
+
+```javascript
+var log = justlog({
+  duration : 1000, // flush buffer time, default is 1000
+  bufferLength : 1000 // max buffer length, default is 0
+  //... other options
+});
+```
+
+or
+
+```javascript
+var log = justlog.create({
+  duration : 1000, // flush buffer time, default is 1000
+  bufferLength : 1000 // max buffer length, default is 0
+});
+```
+
+### default options
+```javascript
+{
+  duration : 1000,
+  bufferLength : 0,
+  // file: ...
+  // stdio : ...
+}
+```
+
+### close buffer log
+
+```javascript
+justlog.end(cb);
+```
+
 
 
 ### About log pattern

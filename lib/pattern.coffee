@@ -18,7 +18,9 @@ timeFormats =
   fulltime : 'YYYY-MM-DD HH:mm:ss'
   numbertime : 'YYYYMMDDHHmmss'
 
-justlogPath = __dirname + '/justlog' + path.extname __filename
+justlogPath = __dirname + '/log' + path.extname __filename
+
+anonymous = '<anonymous>'
 
 module.exports = pattern =
   ###
@@ -167,7 +169,7 @@ module.exports = pattern =
         flag = false
         for stack in stacks
           if res = stack.match reg[2]
-            if res[1] isnt justlogPath and res[1] isnt __filename
+            if res[1] isnt justlogPath and res[1] isnt __filename and res[1] isnt anonymous
               flag = true
               break
         if flag is false

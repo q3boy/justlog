@@ -1,7 +1,7 @@
 {
   "name": "justlog",
   "main": "index.js",
-  "version": "0.0.9",
+  "version": "0.1.0",
   "description": "a powerful log libs",
   "author": {
     "name": "q3boy",
@@ -21,7 +21,8 @@
   "dependencies": {
     "options-stream": "*",
     "mkdirp": "*",
-    "moment": "*"
+    "moment": "*",
+    "event-pipe": "*"
   },
   "devDependencies": {
     "coffee-script": "*",
