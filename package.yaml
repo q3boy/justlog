@@ -17,6 +17,7 @@ dependencies:
   options-stream : '*'
   mkdirp : '*'
   moment : '*'
+  event-pipe: '*'
 devDependencies:
   coffee-script: '*'
   mocha: '*'

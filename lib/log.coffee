@@ -9,22 +9,15 @@ levels  = require './levels'
 colors  = require './colors'
 timeout = require './timeout'
 pattern = require './pattern'
+Stream  = require './stream'
 
 # lazy levels
 {info, debug, warn, error} = levels
 
 cwd = process.cwd()
 
-# default log filenames
 defaultLogFile = "
-[#{cwd}/logs/
-#{path.basename (path.basename process.argv[1] , '.js'), '.coffee'}
--]YYYY-MM-DD[.log]
-"
-defaultAccessLogFile = "
-[#{cwd}/logs/
-#{path.basename (path.basename process.argv[1] , '.js'), '.coffee'}
--access-]YYYY-MM-DD[.log]
+[#{cwd}/logs/#{path.basename (path.basename process.argv[1] , '.js'), '.coffee'}-]YYYY-MM-DD[.log]
 "
 
 # log rotate minimum ms
@@ -65,6 +58,8 @@ class JustLog extends events.EventEmitter
         stdout  : process.stdout
         stderr  : process.stderr
       }
+      duration : 1000
+      bufferLength : 0
     }, options
 
     # options fix
@@ -76,7 +71,7 @@ class JustLog extends events.EventEmitter
 
     # file info init
     @file =
-      path : null, stream : null, timer : null, opening : false
+      path : @options.file.path, stream : null, timer : null, opening : false
       watcher: null, ino: null
     @closed = false
 
@@ -92,6 +87,8 @@ class JustLog extends events.EventEmitter
       @_initFile()
 
     @[k] = @[k].bind @ for k in ['info', 'debug', 'warn', 'error']
+
+    @lastCheckTime = @lastFlushTime = new Date().getTime()
 
   # overwrite emit
   emit : (args...)->
@@ -151,8 +148,10 @@ class JustLog extends events.EventEmitter
     # open flag
     @file.opening = true
 
+    stream = Stream filePath : filePath, bufferLength : @options.bufferLength
+
     # open new stream
-    stream = fs.createWriteStream filePath, flags: 'a', mode: @options.file.mode
+    # stream = fs.createWriteStream filePath, flags: 'a', mode: @options.file.mode
     stream.on 'error', @emit.bind @ # on error
     stream.on 'open', => # opened
       @file.ino = null
@@ -162,7 +161,7 @@ class JustLog extends events.EventEmitter
 
   _closeStream : ->
     @file.stream.end() # end stream
-    @file.stream.destroySoon() # destory after drain
+    # @file.stream.destroySoon() # destory after drain
     @file.stream = null # clear object
     return
 
@@ -171,7 +170,7 @@ class JustLog extends events.EventEmitter
     # set file path
     @_setFilePath()
     @_newStream()
-    @file.watcher = setInterval @_checkFile.bind(@), @options.file._watcher_timeout
+    # @file.watcher = setInterval @_checkFile.bind(@), @options.file._watcher_timeout
     @_rotateFile()
 
 
@@ -263,74 +262,21 @@ class JustLog extends events.EventEmitter
     @closed = true
     @file.stream.on 'close', cb if cb and @file.stream
     @_closeStream()
-    if @file.watcher
-      clearInterval @file.watcher
-      @file.watcher = null
+    # if @file.watcher
+    #   clearInterval @file.watcher
+    #   @file.watcher = null
     if @file.timer
       clearTimeout @file.timer
       @file.timer = null
     return
 
-###
-/**
- * connect middleware
-   * @param  {Object} options
-   *  - {String} [encodeing='utf-8'],        log text encoding
-   *  - file :
-   *    - {Number} [level=error|warn],       file log levels
-   *    - {String} [pattern='accesslog-rt'], log line pattern
-   *    - {String} [mode='0664'],            log file mode
-   *    - {String} [dir_mode='2775'],        log dir mode
-   *    - {String} [path="[$CWD/logs/$MAIN_FILE_BASENAME-access-]YYYY-MM-DD[.log]"],   log file path pattern
-   *  - stdio:
-   *    - {Number}         [level=all],              file log levels
-   *    - {String}         [pattern='accesslog-rt'], log line pattern
-   *    - {WritableStream} [stdout=process.stdout],  info & debug output stream
-   *    - {WritableStream} [stderr=process.stderr],  warn & error output stream
- * @param  {Function} cb(justlog)
- * @return {Middlewtr}
-###
-middleware = (options) ->
-  # default pattern name
-  options = os {
-    file:
-      path    : defaultAccessLogFile
-      pattern : 'accesslog-rt'
-    stdio :
-      pattern : 'accesslog-color'
-  }, options
-  # make sure level info need log
-  options.file.level |= info
-  options.stdio.level |= info
-  # new log object
-  log = new JustLog options
-  # middleware
-  mw = (req, resp, next) =>
-    # response timer
-    req.__justLogStartTime = new Date
-    # hack resp.end
-    end = resp.end
-    resp.end = (chunk, encoding) ->
-      resp.end = end
-      resp.end chunk, encoding
-      log.info {
-        'remote-address' : req.socket.remoteAddress
-        method           : req.method
-        url              : req.originalUrl || req.url
-        version          : req.httpVersionMajor + '.' + req.httpVersionMinor
-        status           : resp.statusCode
-        'content-length' : parseInt resp.getHeader('content-length'), 10
-        headers          : req.headers
-        rt               : new Date() - req.__justLogStartTime
-      }
-    next()
-  mw.justlog = log
-  mw
+  heartBeat : (now)->
+    if now - @lastFlushTime > @options.duration and @file.stream
+      @file.stream.flush()
+      @lastFlushTime = now
+    if now - @lastCheckTime > @options.file._watcher_timeout
+      @_checkFile()
+      @lastCheckTime = now
 
-create = (options) -> new JustLog options
-# set levels const
-create[k.toUpperCase()] = v for k, v of levels.levels
-# set middleware
-create.middleware = middleware
-# exports
-module.exports = create
+module.exports = (options)->
+  new JustLog options

@@ -21,7 +21,8 @@
   "dependencies": {
     "options-stream": "*",
     "mkdirp": "*",
-    "moment": "*"
+    "moment": "*",
+    "event-pipe": "*"
   },
   "devDependencies": {
     "coffee-script": "*",
