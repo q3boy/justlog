@@ -235,7 +235,7 @@ describe 'buffer JustLog', ->
       , 400
 
   describe 'end', ->
-    it 'write multiple log when time out', (done)->
+    it 'close all log inst', (done)->
       options.stdio = false
       options.duration = 100
       l = jl.create options
