@@ -181,11 +181,11 @@ describe 'buffer JustLog', ->
           $
         ///
         l.close done
-      , 200
+      , 300
 
     it 'write multiple log when time out', (done)->
       options.stdio = false
-      options.duration = 100
+      options.duration = 300
       l = jl.create options
       l.warn 'simple warn'
       l.error 'simple error'
@@ -194,7 +194,7 @@ describe 'buffer JustLog', ->
           path : "[#{dir}/test1.txt]"
         stdio : false
         bufferLength : 5
-        duration : 300
+        duration : 900
       l2 = jl.create options2
       l2.warn 'log warn'
       l2.error 'log error'
@@ -214,7 +214,7 @@ describe 'buffer JustLog', ->
           $
         ///
         e(fs.readFileSync(l2.file.path).toString()).to.eql ''
-      , 200
+      , 600
       setTimeout ->
         e(fs.readFileSync(l2.file.path).toString()).to.match ///
           ^
@@ -232,12 +232,12 @@ describe 'buffer JustLog', ->
         ], ->
           done()
         ).run()
-      , 400
+      , 1200
 
   describe 'end', ->
     it 'close all log inst', (done)->
       options.stdio = false
-      options.duration = 100
+      options.duration = 50
       l = jl.create options
       l.warn 'simple warn'
       l.error 'simple error'
@@ -246,7 +246,7 @@ describe 'buffer JustLog', ->
           path : "[#{dir}/test1.txt]"
         stdio : false
         bufferLength : 5
-        duration : 300
+        duration : 500
       l2 = jl.create options2
       l2.warn 'log warn'
       l2.error 'log error'
@@ -270,5 +270,5 @@ describe 'buffer JustLog', ->
             $
           ///
           done()
-      , 200
+      , 300
 

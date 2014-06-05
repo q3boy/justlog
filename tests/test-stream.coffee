@@ -25,7 +25,6 @@ describe 'Stream', ->
 
   it 'write', (done)->
     stream = Stream
-      duration : 100
       filePath : filePath
     stream.write 'msg\n'
     stream.write 'msg\n'
@@ -35,11 +34,10 @@ describe 'Stream', ->
       e(stream._buffer.length).to.be 0
       stream.end()
       done()
-    , 110
+    , 300
 
   it 'write on buffer over', (done)->
     stream = Stream
-      duration : 100
       bufferLength : 100
       filePath : filePath
     result = []
@@ -56,17 +54,16 @@ describe 'Stream', ->
       e(stream._buffer.length).to.be 0
       stream.end()
       done()
-    , 10
+    , 300
 
   it 'end', (done)->
     stream = Stream
-      duration : 100
       filePath : filePath
     stream.write 'msg\n'
+    stream.end()
     setTimeout ->
-      stream.end()
       str = fs.readFileSync filePath, 'utf-8'
       e(str).to.be 'msg\n'
       e(stream._buffer.length).to.be 0
       done()
-    , 50
+    , 200
