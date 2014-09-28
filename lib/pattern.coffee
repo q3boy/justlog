@@ -113,6 +113,8 @@ module.exports = pattern =
         num = funcs.length
         funcs.push [name, key, args.replace(/\\"/g, '"')]
         code = "__func[#{num}]"
+      else if name of timeFormats# is time vars
+        code += "__vars.now('#{timeFormats[name]}')"
       else # is vars
         code += "__vars['#{name}']#{if key then "['#{key}']" else ''}"
       codes.push '(' + code + '||"-")'
@@ -157,29 +159,33 @@ module.exports = pattern =
     msg.levelTrim    = msg.level.trim()
     if render.time
       now = moment()
-      msg[k] = now.format v for k,v of timeFormats
       msg.now = now.format.bind now
       msg.mstimestamp = now.valueOf()
       msg.timestamp = Math.floor msg.mstimestamp / 1000
-    if render.stack
-      try
-        throw new Error
-      catch err
-        stacks = err.stack.split "\n"
-        flag = false
-        for stack in stacks
-          if res = stack.match reg[2]
-            if res[1] isnt justlogPath and res[1] isnt __filename and res[1] isnt anonymous
-              flag = true
-              break
-        if flag is false
-          msg.file = 'NULL'
-          msg.lineno = 0
-        else
-          file = res[1]
-          msg.file = if file[0] is '/' then path.relative cwd, file else file
-          msg.lineno = res[2]
-        msg.stack = "#{msg.file}:#{msg.lineno}"
-        msg.stackColored = "#{colors.underline}#{colors.cyan}#{msg.file}:#{colors.yellow}#{msg.lineno}#{colors.reset}"
+    msg = trackStack msg if render.stack
     render(msg) + "\n"
 
+trackStack = (msg) ->
+  try
+    throw new Error
+  catch err
+    return stackProcess err, msg
+
+stackProcess = (err, msg) ->
+  stacks = err.stack.split "\n"
+  flag = false
+  for stack in stacks
+    if res = stack.match reg[2]
+      if res[1] isnt justlogPath and res[1] isnt __filename and res[1] isnt anonymous
+        flag = true
+        break
+  if flag is false
+    msg.file = 'NULL'
+    msg.lineno = 0
+  else
+    file = res[1]
+    msg.file = if file[0] is '/' then path.relative cwd, file else file
+    msg.lineno = res[2]
+  msg.stack = "#{msg.file}:#{msg.lineno}"
+  msg.stackColored = "#{colors.underline}#{colors.cyan}#{msg.file}:#{colors.yellow}#{msg.lineno}#{colors.reset}"
+  msg
