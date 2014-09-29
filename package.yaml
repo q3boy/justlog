@@ -1,6 +1,6 @@
 name: justlog
 main: index.js
-version: 0.1.0
+version: 0.1.1
 description: 'a powerful log libs'
 author:
   name: q3boy
@@ -23,7 +23,7 @@ devDependencies:
   mocha: '*'
   expect.js: '*'
   jscover: '*'
-  yamljs: '*'
+  yamljs: '0.1.6'
 scripts:
   prepublish: make release
   postpublish: make clean
