@@ -18,8 +18,6 @@ stackNames = ['file', 'lineno', 'stack', 'stackColored'];
 
 timeNames = ['now', 'time', 'date', 'fulltime', 'numbertime', 'mstimestamp', 'timestamp'];
 
-FORMATED_TIME = {};
-
 timeFormats = {
   time: 'HH:mm:ss',
   date: 'YYYY-MM-DD',
@@ -167,6 +165,8 @@ module.exports = pattern = {
     return render(msg) + "\n";
   }
 };
+
+FORMATED_TIME = {};
 
 getFormatedTime = function(format) {
   var interval, timer;

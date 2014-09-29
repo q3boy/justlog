@@ -12,8 +12,6 @@ reg = [
 stackNames = ['file', 'lineno', 'stack', 'stackColored']
 timeNames = ['now', 'time', 'date', 'fulltime', 'numbertime', 'mstimestamp', 'timestamp']
 
-FORMATED_TIME = {}
-
 timeFormats =
   time : 'HH:mm:ss'
   date : 'YYYY-MM-DD'
@@ -165,6 +163,8 @@ module.exports = pattern =
       msg.timestamp = Math.floor msg.mstimestamp / 1000
     msg = trackStack msg if render.stack
     render(msg) + "\n"
+
+FORMATED_TIME = {}
 
 getFormatedTime = ( format ) ->
   unless format of FORMATED_TIME
