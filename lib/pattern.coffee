@@ -12,6 +12,8 @@ reg = [
 stackNames = ['file', 'lineno', 'stack', 'stackColored']
 timeNames = ['now', 'time', 'date', 'fulltime', 'numbertime', 'mstimestamp', 'timestamp']
 
+FORMATED_TIME = {}
+
 timeFormats =
   time : 'HH:mm:ss'
   date : 'YYYY-MM-DD'
@@ -158,12 +160,22 @@ module.exports = pattern =
     msg.level        = levels.text[level]
     msg.levelTrim    = msg.level.trim()
     if render.time
-      now = moment()
-      msg.now = now.format.bind now
-      msg.mstimestamp = now.valueOf()
+      msg.now = getFormatedTime
+      msg.mstimestamp = moment().valueOf()
       msg.timestamp = Math.floor msg.mstimestamp / 1000
     msg = trackStack msg if render.stack
     render(msg) + "\n"
+
+getFormatedTime = ( format ) ->
+  unless format of FORMATED_TIME
+    #TODO different interval time with difference format
+    interval = 1000
+    timer = ->
+      now = moment()
+      setTimeout(timer, interval-now.milliseconds())
+      FORMATED_TIME[format] = now.format format
+    timer()
+  FORMATED_TIME[format]
 
 trackStack = (msg) ->
   try
