@@ -81,7 +81,8 @@ module.exports = pattern =
    *  - {bool}   [time]    need logtime info
    *  - {string} [pattern] pattern text
   ###
-  compile : (pat)->
+  compile : (pat, options={empty_char : '-'})->
+    {empty_char} = options
     code = pattern.pre[pat] ? pat # check perdefines
     code = code.replace /"/g, '\\"' # slash '"'
     useStack = false
@@ -117,7 +118,7 @@ module.exports = pattern =
         code += "__vars.now('#{timeFormats[name]}')"
       else # is vars
         code += "__vars['#{name}']#{if key then "['#{key}']" else ''}"
-      codes.push '(' + code + '||"-")'
+      codes.push "(#{code}||\"#{empty_char}\")"
 
       # push style reset block
       codes.push '"' + colors.reset + '"' if styles
@@ -126,14 +127,14 @@ module.exports = pattern =
     # remove empty string
     code = ('"' + code + '"').replace(/^""\+$/mg, '')
     code = "return #{code.trim()};"
-
     # __func prefix
     funcCode = []
     if funcs.length > 0
-      funcCode.push 'var __func = [];with(__vars||{}){'
+      funcCode.push 'var __func = [];'
       for [name, key, args] in funcs
+        args = "__vars['#{args}']" if args[0].match /[a-z]/i
         funcCode.push "__func.push(__vars['#{name}']#{if key then "['#{key}']" else ''}(#{args}));"
-      funcCode.push '}'
+      # funcCode.push '}'
     code = funcCode.join(";\n")+code
 
     # make function

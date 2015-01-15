@@ -121,7 +121,8 @@ describe 'JustLog', ->
         $
       ///
       done()
-    it 'stdout with default output pattern', (done)->
+
+    it 'stdout with default output pattern and printf info', (done)->
       options.file.level = 0
       options.stdio.level = jl.INFO | jl.DEBUG
       l = new jl options
@@ -138,6 +139,18 @@ describe 'JustLog', ->
         $
       ///
       e(stderr.toStringNoColor()).to.be ''
+      done()
+    it 'stdout with default output pattern and change empty_char to "_"', (done)->
+      options.file = false
+      options.empty_char = "_"
+      l = new jl options
+      l.info {}
+      e(stdout.toStringNoColor()).to.match ///
+        ^
+        \d{2}:\d{2}:\d{2}\s
+        INFO\s+(out/test/)?tests/test-justlog\.(js|coffee):\d+\s_\n
+        $
+      ///
       done()
   describe 'file', ->
     it 'write warn & error log with default pattern', (done)->
@@ -360,4 +373,3 @@ describe 'JustLog', ->
       , 100
 
 
-      # m()

@@ -12,6 +12,14 @@ describe 'Pattern Tools', ->
     it 'with vars', ->
       render = pat.compile 'simple {var1} simple'
       e(render({var1:'vars'})).to.be 'simple vars simple'
+    it 'with empty vars', ->
+      render = pat.compile 'simple {var1} simple'
+      e(render({})).to.be 'simple - simple'
+    it 'with empty vars without "-"', ->
+      render = pat.compile 'simple {empty var1} simple', empty_char:''
+      e(render({var1 : '', empty : (v) ->
+        if v then v else ''
+      })).to.be 'simple  simple'
     it 'with time', ->
       for k in ['now', 'time', 'date', 'fulltime', 'numbertime', 'mstimestamp', 'timestamp']
         render = pat.compile 'simple {' + k + '} simple'
@@ -34,7 +42,7 @@ describe 'Pattern Tools', ->
         e(pat.format render, {foo:'bar', foo1:bar1:'bar1'}, 1).to.be 'object vars bar bar1\n'
       it 'call function with const', ->
         render = pat.compile 'object vars {foo "123"} {foo 456} {foo \'789\'} {foo true}'
-        e(pat.format render, {foo:(v)->v}, 1).to.be 'object vars 123 456 789 true\n'
+        e(pat.format render, {foo:((v)->v), 'true' : 'true'}, 1).to.be 'object vars 123 456 789 true\n'
       it 'call function with vars', ->
         render = pat.compile 'object vars {foo bar}'
         e(pat.format render, {foo:((v)->v), bar:123}, 1).to.be 'object vars 123\n'
