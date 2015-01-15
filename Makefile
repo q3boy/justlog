@@ -5,7 +5,7 @@
 
 
 -BIN_MOCHA := ./node_modules/.bin/mocha
--BIN_ISTANBUL := ./node_modules/.bin/istanbul
+-BIN_ISTANBUL := ../../node_modules/.bin/istanbul
 -BIN_COFFEE := ./node_modules/coffee-script/bin/coffee
 -BIN_YAML := ./node_modules/.bin/yaml2json -sp
 
@@ -66,7 +66,7 @@ test-cov: clean json
 	@$(-BIN_COFFEE) -cb $(-COFFEE_COVERAGE)
 	@rm -f $(-COFFEE_COVERAGE)
 
-	@cd $(-COVERAGE_DIR) && ../../$(-BIN_ISTANBUL) cover ../../node_modules/.bin/_mocha -- -u bdd -R spec tests/*
+	@cd $(-COVERAGE_DIR) && $(-BIN_ISTANBUL) cover ../../node_modules/.bin/_mocha -- -u bdd -R spec tests/*
 	@if [ `echo $$OSTYPE | grep -c 'darwin'` -eq 1 ]; then \
 		echo "test report saved \"$(-COVERAGE_DIR)/coverage/lcov-report\""; \
 		open $(-COVERAGE_DIR)/coverage/lcov-report/index.html; \
