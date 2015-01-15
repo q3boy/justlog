@@ -61,7 +61,7 @@ JustLog = (function(_super) {
     var k, v, _i, _len, _ref, _ref1;
     this.options = os({
       encoding: 'utf-8',
-      empty_char: '-',
+      placeholder: '-',
       file: {
         level: error | warn,
         pattern: 'file',
@@ -103,12 +103,12 @@ JustLog = (function(_super) {
       this.stdout = this.options.stdio.stdout;
       this.stderr = this.options.stdio.stderr;
       this.options.stdio.render = pattern.compile(this.options.stdio.pattern, {
-        empty_char: this.options.empty_char
+        placeholder: this.options.placeholder
       });
     }
     if (this.options.file) {
       this.options.file.render = pattern.compile(this.options.file.pattern, {
-        empty_char: this.options.empty_char
+        placeholder: this.options.placeholder
       });
       this._initFile();
     }

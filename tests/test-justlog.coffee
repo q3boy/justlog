@@ -140,9 +140,9 @@ describe 'JustLog', ->
       ///
       e(stderr.toStringNoColor()).to.be ''
       done()
-    it 'stdout with default output pattern and change empty_char to "_"', (done)->
+    it 'stdout with default output pattern and change placeholder to "_"', (done)->
       options.file = false
-      options.empty_char = "_"
+      options.placeholder = "_"
       l = new jl options
       l.info {}
       e(stdout.toStringNoColor()).to.match ///

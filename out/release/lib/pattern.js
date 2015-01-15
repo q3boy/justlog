@@ -73,13 +73,13 @@ module.exports = pattern = {
    *  - {string} [pattern] pattern text
    */
   compile: function(pat, options) {
-    var args, code, empty_char, func, funcCode, funcs, key, name, useStack, useTime, _i, _len, _ref, _ref1;
+    var args, code, func, funcCode, funcs, key, name, placeholder, useStack, useTime, _i, _len, _ref, _ref1;
     if (options == null) {
       options = {
-        empty_char: '-'
+        placeholder: '-'
       };
     }
-    empty_char = options.empty_char;
+    placeholder = options.placeholder;
     code = (_ref = pattern.pre[pat]) != null ? _ref : pat;
     code = code.replace(/"/g, '\\"');
     useStack = false;
@@ -115,7 +115,7 @@ module.exports = pattern = {
       } else {
         code += "__vars['" + name + "']" + (key ? "['" + key + "']" : '');
       }
-      codes.push("(" + code + "||\"" + empty_char + "\")");
+      codes.push("(" + code + "||\"" + placeholder + "\")");
       if (styles) {
         codes.push('"' + colors.reset + '"');
       }

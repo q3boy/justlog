@@ -44,7 +44,7 @@ class JustLog extends events.EventEmitter
   constructor : (options)->
     @options = os {
       encoding : 'utf-8'
-      empty_char        : '-'
+      placeholder        : '-'
       file : {
         level           : error | warn
         pattern         : 'file'
@@ -80,11 +80,11 @@ class JustLog extends events.EventEmitter
     if @options.stdio
       @stdout = @options.stdio.stdout
       @stderr = @options.stdio.stderr
-      @options.stdio.render = pattern.compile @options. stdio.pattern, {empty_char : @options.empty_char}
+      @options.stdio.render = pattern.compile @options. stdio.pattern, {placeholder : @options.placeholder}
 
     # need file
     if @options.file
-      @options.file.render = pattern.compile @options.file.pattern, {empty_char : @options.empty_char}
+      @options.file.render = pattern.compile @options.file.pattern, {placeholder : @options.placeholder}
       @_initFile()
 
     @[k] = @[k].bind @ for k in ['info', 'debug', 'warn', 'error']

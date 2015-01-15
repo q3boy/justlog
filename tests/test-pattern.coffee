@@ -16,7 +16,7 @@ describe 'Pattern Tools', ->
       render = pat.compile 'simple {var1} simple'
       e(render({})).to.be 'simple - simple'
     it 'with empty vars without "-"', ->
-      render = pat.compile 'simple {empty var1} simple', empty_char:''
+      render = pat.compile 'simple {empty var1} simple', placeholder:''
       e(render({var1 : '', empty : (v) ->
         if v then v else ''
       })).to.be 'simple  simple'

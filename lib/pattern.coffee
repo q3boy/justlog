@@ -81,8 +81,8 @@ module.exports = pattern =
    *  - {bool}   [time]    need logtime info
    *  - {string} [pattern] pattern text
   ###
-  compile : (pat, options={empty_char : '-'})->
-    {empty_char} = options
+  compile : (pat, options={placeholder : '-'})->
+    {placeholder} = options
     code = pattern.pre[pat] ? pat # check perdefines
     code = code.replace /"/g, '\\"' # slash '"'
     useStack = false
@@ -118,7 +118,7 @@ module.exports = pattern =
         code += "__vars.now('#{timeFormats[name]}')"
       else # is vars
         code += "__vars['#{name}']#{if key then "['#{key}']" else ''}"
-      codes.push "(#{code}||\"#{empty_char}\")"
+      codes.push "(#{code}||\"#{placeholder}\")"
 
       # push style reset block
       codes.push '"' + colors.reset + '"' if styles
