@@ -297,34 +297,38 @@ describe 'JustLog', ->
             e(tflag).to.above 3
             e(tflag).to.below 6
             flag = 0
+            # console.log files
             for k in files
+              txt = fs.readFileSync(k).toString().trim()
+              continue unless txt
               switch ++flag
                 when 1
-                  e(fs.readFileSync(k).toString()).to.match ///
+                  console.log "+++#{txt}+++"
+                  e(txt).to.match ///
                     ^
                     \d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\s
-                    \[WARN\]\s+\((out/test/)?tests/test-justlog\.(js|coffee):\d+\)\ssimple\swarn\n
+                    \[WARN\]\s+\((out/test/)?tests/test-justlog\.(js|coffee):\d+\)\ssimple\swarn\n?
                     $
                   ///
                 when 2
-                  e(fs.readFileSync(k).toString()).to.match ///
+                  e(txt).to.match ///
                     ^
                     \d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\s
-                    \[ERROR\]\s+\((out/test/)?tests/test-justlog\.(js|coffee):\d+\)\ssimple\serror1\n
+                    \[ERROR\]\s+\((out/test/)?tests/test-justlog\.(js|coffee):\d+\)\ssimple\serror1\n?
                     $
                   ///
                 when 3
-                  e(fs.readFileSync(k).toString()).to.match ///
+                  e(txt).to.match ///
                     ^
                     \d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\s
-                    \[ERROR\]\s+\((out/test/)?tests/test-justlog\.(js|coffee):\d+\)\ssimple\serror2\n
+                    \[ERROR\]\s+\((out/test/)?tests/test-justlog\.(js|coffee):\d+\)\ssimple\serror2\n?
                     $
                   ///
                 when 4
-                  e(fs.readFileSync(k).toString()).to.match ///
+                  e(txt).to.match ///
                     ^
                     \d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\s
-                    \[ERROR\]\s+\((out/test/)?tests/test-justlog\.(js|coffee):\d+\)\ssimple\serror3\n
+                    \[ERROR\]\s+\((out/test/)?tests/test-justlog\.(js|coffee):\d+\)\ssimple\serror3\n?
                     $
                   ///
               fs.unlinkSync k
