@@ -304,7 +304,6 @@ describe 'JustLog', ->
               continue unless txt
               switch ++flag
                 when 1
-                  console.log "+++#{txt}+++"
                   e(txt).to.match ///
                     ^
                     \d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\s
