@@ -295,11 +295,12 @@ describe 'JustLog', ->
           l.close ->
             # console.log files
             e(tflag).to.above 3
-            e(tflag).to.below 6
+            # e(tflag).to.below 6
             flag = 0
             # console.log files
             for k in files
               txt = fs.readFileSync(k).toString().trim()
+              fs.unlinkSync k
               continue unless txt
               switch ++flag
                 when 1
@@ -331,7 +332,6 @@ describe 'JustLog', ->
                     \[ERROR\]\s+\((out/test/)?tests/test-justlog\.(js|coffee):\d+\)\ssimple\serror3\n?
                     $
                   ///
-              fs.unlinkSync k
             e(flag).to.be 4
             done()
         , 3000
