@@ -34,9 +34,7 @@ getTraceId = (req)->
   traceid.writeUInt32BE Math.random() * 4294967296, 4
   [f1,f2,f3,f4] = req.socket.remoteAddress.split '.'
   ip = Number(f1) << 24 | (Number(f2) << 16) | (Number(f3) << 8) | Number(f4)
-  mask = process.pid
-  mask |=  req.socket.remotePort << 16 if Number.isInteger req.socket.remotePort
-  ip ^= mask
+  ip ^= (Number(req.socket.remotePort) << 16) | process.pid
   traceid.writeUInt32BE ip, 8
   traceid.writeUInt32BE req.__justLogStartTime/1000, 12
   traceid.toString 'base64'
