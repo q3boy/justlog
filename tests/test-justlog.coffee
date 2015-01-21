@@ -33,6 +33,7 @@ mock =
       'referer'    : 'mock refer'
     socket :
       remoteAddress : '127.0.0.1'
+      remotePort : 1234
     httpVersionMajor : 1
     httpVersionMinor : 1
     method : 'GET'
@@ -356,6 +357,7 @@ describe 'JustLog', ->
           "\x1b\[34mmock\srefer\x1b\[0m"\s
           "\x1b\[36mmock\sserver\x1b\[0m"\s
           [12]\d\n
+          $
         ///
 
         fbody = fs.readFileSync(l.file.path).toString()
@@ -371,6 +373,35 @@ describe 'JustLog', ->
           "mock\srefer"\s
           "mock\sserver"\s
           [12]\d\n
+          $
+        ///
+        done()
+      , 100
+    it 'with traceid', (done)->
+      options.traceid = true
+      options.file.pattern = 'accesslog-traceid'
+      m = jl.middleware options
+      l = m.justlog
+      mock.resp.statusCode = 200
+      mock.req.url = '/traceid'
+      m mock.req, mock.resp, -> setTimeout (->mock.resp.end 'some data1'), 20
+      setTimeout ->
+        mock.resp.end 'some data'
+        fbody = fs.readFileSync(l.file.path).toString()
+        e(fbody).to.match
+        ///
+          ^
+          127\.0\.0\.1\s
+          -\s
+          -\s
+          \[\d{1,2}/\w{3}/\d{4}:\d\d:\d\d:\d\d\s[\+\-]?\d{4}\]\s
+          "GET\s /traceid\sHTTP/1.1"\s
+          200\s-\s
+          "mock\srefer"\s
+          "mock\sserver"\s
+          [12]\d\s
+          [\w\/\=]{24}\n
+          $
         ///
         done()
       , 100

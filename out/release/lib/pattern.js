@@ -60,26 +60,28 @@ module.exports = pattern = {
     'event-nocolor': '{fulltime} {event} {args}',
     'accesslog': '{remote-address} {ident} {user}\n[{now "DD/MMM/YYYY:HH:mm:ss ZZ"}]\n"{method} {url} HTTP/{version}"\n{status} {content-length}\n"{headers.referer}" "{headers.user-agent}"'.replace(/\n/g, ' '),
     'accesslog-rt': '{remote-address} {ident} {user}\n[{now \'DD/MMM/YYYY:HH:mm:ss ZZ\'}]\n"{method} {url} HTTP/{version}"\n{status} {content-length}\n"{headers.referer}" "{headers.user-agent}" {rt}'.replace(/\n/g, ' '),
-    'accesslog-color': '{remote-address@yellow} {ident} {user}\n[{now \'DD/MMM/YYYY:HH:mm:ss ZZ\'}]\n"{color.method method} {url@underline,bold,blue} HTTP/{version}"\n{color.status status} {content-length}\n"{headers.referer@blue}" "{headers.user-agent@cyan}" {rt}'.replace(/\n/g, ' ')
+    'accesslog-color': '{remote-address@yellow} {ident} {user}\n[{now \'DD/MMM/YYYY:HH:mm:ss ZZ\'}]\n"{color.method method} {url@underline,bold,blue} HTTP/{version}"\n{color.status status} {content-length}\n"{headers.referer@blue}" "{headers.user-agent@cyan}" {rt}'.replace(/\n/g, ' '),
+    'accesslog-traceid': '{remote-address}:{remote-port} {ident} {user}\n[{now \'DD/MMM/YYYY:HH:mm:ss ZZ\'}]\n"{method} {url} HTTP/{version}"\n{status} {content-length}\n"{headers.referer}" "{headers.user-agent}" {rt} {traceid}'.replace(/\n/g, ' ')
   },
 
   /*
   /**
    * compile log-format pattern to a render function
    * @param  {string} code pattern string
+   * @param  {Object} options on compile; placeholder: placeholder for empty value
    * @return {function}    pattern render function
    *  - {bool}   [trace]   need tracestack info
    *  - {bool}   [time]    need logtime info
    *  - {string} [pattern] pattern text
    */
   compile: function(pat, options) {
-    var args, code, func, funcCode, funcs, key, name, placeholder, useStack, useTime, _i, _len, _ref, _ref1;
+    var args, code, func, funcCode, funcs, key, name, placeholder, traceid, useStack, useTime, _i, _len, _ref, _ref1;
     if (options == null) {
       options = {
         placeholder: '-'
       };
     }
-    placeholder = options.placeholder;
+    placeholder = options.placeholder, traceid = options.traceid;
     code = (_ref = pattern.pre[pat]) != null ? _ref : pat;
     code = code.replace(/"/g, '\\"');
     useStack = false;

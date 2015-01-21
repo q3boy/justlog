@@ -25,6 +25,22 @@ heartBeat = ->
 
 heartBeat()
 
+
+traceid = new Buffer 16
+getTraceId = (req)->
+  # +   ========   +      ====      +     ====     +
+  # + random bytes + ip^(masek|pid) + request time +
+  traceid.writeUInt32BE Math.random() * 4294967296
+  traceid.writeUInt32BE Math.random() * 4294967296, 4
+  [f1,f2,f3,f4] = req.socket.remoteAddress.split '.'
+  ip = Number(f1) << 24 | (Number(f2) << 16) | (Number(f3) << 8) | Number(f4)
+  mask = process.pid
+  mask |=  req.socket.remotePort << 16 if Number.isInteger req.socket.remotePort
+  ip ^= mask
+  traceid.writeUInt32BE ip, 8
+  traceid.writeUInt32BE req.__justLogStartTime/1000, 12
+  traceid.toString 'base64'
+
 factory =
   config : (opt)->
     flushTime = opt.flushTime if opt.flushTime
@@ -76,8 +92,9 @@ factory =
       file:
         path    : defaultAccessLogFile
         pattern : 'accesslog-rt'
-      stdio :
+      stdio:
         pattern : 'accesslog-color'
+      traceid   : false
     , options
     # make sure level info need log
     options.file.level |= info
@@ -91,11 +108,14 @@ factory =
       req.__justLogStartTime = new Date
       # hack resp.end
       end = resp.end
+      resp.__justLogTraceId = req.__justLogTraceId = getTraceId(req) if options.traceid
+
       resp.end = (chunk, encoding) ->
         resp.end = end
         resp.end chunk, encoding
         log.info {
           'remote-address' : req.socket.remoteAddress
+          'remote-port'    : req.socket.remotePort
           method           : req.method
           url              : req.originalUrl || req.url
           version          : req.httpVersionMajor + '.' + req.httpVersionMinor
@@ -103,6 +123,7 @@ factory =
           'content-length' : parseInt resp.getHeader('content-length'), 10
           headers          : req.headers
           rt               : new Date() - req.__justLogStartTime
+          traceid          : req.__justLogTraceId
         }
       next()
     mw.justlog = log

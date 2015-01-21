@@ -2,7 +2,7 @@
 moment = require 'moment'
 colors = require './colors'
 path   = require 'path'
-levels   = require './levels'
+levels = require './levels'
 
 cwd = process.cwd()
 reg = [
@@ -71,18 +71,26 @@ module.exports = pattern =
       {color.status status} {content-length}
       "{headers.referer@blue}" "{headers.user-agent@cyan}" {rt}
     '''.replace /\n/g, ' '
+    'accesslog-traceid' : '''
+      {remote-address}:{remote-port} {ident} {user}
+      [{now 'DD/MMM/YYYY:HH:mm:ss ZZ'}]
+      "{method} {url} HTTP/{version}"
+      {status} {content-length}
+      "{headers.referer}" "{headers.user-agent}" {rt} {traceid}
+    '''.replace /\n/g, ' '
 
   ###
   /**
    * compile log-format pattern to a render function
    * @param  {string} code pattern string
+   * @param  {Object} options on compile; placeholder: placeholder for empty value
    * @return {function}    pattern render function
    *  - {bool}   [trace]   need tracestack info
    *  - {bool}   [time]    need logtime info
    *  - {string} [pattern] pattern text
   ###
-  compile : (pat, options={placeholder : '-'})->
-    {placeholder} = options
+  compile : (pat, options = placeholder : '-')->
+    {placeholder, traceid} = options
     code = pattern.pre[pat] ? pat # check perdefines
     code = code.replace /"/g, '\\"' # slash '"'
     useStack = false

@@ -44,7 +44,7 @@ class JustLog extends events.EventEmitter
   constructor : (options)->
     @options = os {
       encoding : 'utf-8'
-      placeholder        : '-'
+      placeholder       : '-'
       file : {
         level           : error | warn
         pattern         : 'file'

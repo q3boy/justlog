@@ -77,4 +77,3 @@ describe 'Pattern Tools', ->
         render = pat.compile 'simple colored {stack} {msg}'
         checkReg = /simple colored (out\/test\/)?tests\/test-pattern\.(js|coffee):\d+ msg\n/
         new Function('e', 'pat', 'render', 'checkReg', "e(pat.format(render, 'msg', 8)).to.match(checkReg);")(e, pat, render, checkReg);
-
