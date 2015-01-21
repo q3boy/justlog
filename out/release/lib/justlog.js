@@ -41,7 +41,7 @@ traceid = new Buffer(16);
 
 getTraceId = function(req) {
   var f1, f2, f3, f4, ip, mask, _ref;
-  traceid.writeUInt32BE(Math.random() * 4294967296);
+  traceid.writeUInt32BE(Math.random() * 4294967296, 0);
   traceid.writeUInt32BE(Math.random() * 4294967296, 4);
   _ref = req.socket.remoteAddress.split('.'), f1 = _ref[0], f2 = _ref[1], f3 = _ref[2], f4 = _ref[3];
   ip = Number(f1) << 24 | (Number(f2) << 16) | (Number(f3) << 8) | Number(f4);

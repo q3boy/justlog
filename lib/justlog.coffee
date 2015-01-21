@@ -30,7 +30,7 @@ traceid = new Buffer 16
 getTraceId = (req)->
   # +   ========   +      ====      +     ====     +
   # + random bytes + ip^(masek|pid) + request time +
-  traceid.writeUInt32BE Math.random() * 4294967296
+  traceid.writeUInt32BE Math.random() * 4294967296, 0
   traceid.writeUInt32BE Math.random() * 4294967296, 4
   [f1,f2,f3,f4] = req.socket.remoteAddress.split '.'
   ip = Number(f1) << 24 | (Number(f2) << 16) | (Number(f3) << 8) | Number(f4)
