@@ -37,6 +37,7 @@ if v1 * 100000 + v2 * 1000 + Number(v3) > 11013
     [f1,f2,f3,f4] = req.socket.remoteAddress.split '.'
     ip = Number(f1) << 24 | (Number(f2) << 16) | (Number(f3) << 8) | Number(f4)
     ip ^= (Number(req.socket.remotePort) << 16) | process.pid
+    ip = ip * (-1) if ip < 0
     traceid.writeUInt32BE ip, 8
     traceid.writeUInt32BE req.__justLogStartTime/1000, 12
     traceid.toString 'base64'
