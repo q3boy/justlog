@@ -49,10 +49,7 @@ if (v1 * 100000 + v2 * 1000 + Number(v3) > 11013) {
     _ref1 = req.socket.remoteAddress.split('.'), f1 = _ref1[0], f2 = _ref1[1], f3 = _ref1[2], f4 = _ref1[3];
     ip = Number(f1) << 24 | (Number(f2) << 16) | (Number(f3) << 8) | Number(f4);
     ip ^= (Number(req.socket.remotePort) << 16) | process.pid;
-    if (ip < 0) {
-      ip = ip * (-1);
-    }
-    traceid.writeUInt32BE(ip, 8);
+    traceid.writeInt32BE(ip, 8);
     traceid.writeUInt32BE(req.__justLogStartTime / 1000, 12);
     return traceid.toString('base64');
   };
