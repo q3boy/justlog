@@ -18,3 +18,4 @@ results
 /node_modules
 
 /tests/log_file/
+.DS_Store

@@ -105,8 +105,8 @@ module.exports = pattern =
       (?:@((?:[a-z_]+,?)+))? # style
       \}
     ///g, (match, name, key, args, style) ->
-      useStack = true if name in stackNames # need tracestack
-      useTime = true if name in timeNames   # need time
+      useStack = true if -1 isnt stackNames.indexOf name # need tracestack
+      useTime = true if -1 isnt timeNames.indexOf name   # need time
       codes = []
 
       # push style block
